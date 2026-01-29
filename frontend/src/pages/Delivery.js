@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useContext } from 'react';
+import { api } from '../lib/api';
+import AuthContext from '../context/AuthContext';
 
 const Delivery = () => {
+  const { accountMode } = useContext(AuthContext);
   const [requests, setRequests] = useState([]);
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,14 +22,19 @@ const Delivery = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
+    if (!accountMode) {
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, []);
+  }, [accountMode]);
 
   const fetchData = async () => {
+    if (!accountMode) return;
     try {
       const [requestsRes, walletRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/delivery/my-requests'),
-        axios.get('http://localhost:5000/api/wallet/balance')
+        api.get('/api/delivery/my-requests'),
+        api.get('/api/wallet/balance', { params: { mode: accountMode } })
       ]);
       setRequests(requestsRes.data);
       setWallet(walletRes.data);
@@ -44,7 +51,7 @@ const Delivery = () => {
     setSuccess('');
 
     try {
-      await axios.post('http://localhost:5000/api/delivery/request', formData);
+      await api.post('/api/delivery/request', formData);
       setSuccess('Delivery request created successfully');
       setShowForm(false);
       setFormData({

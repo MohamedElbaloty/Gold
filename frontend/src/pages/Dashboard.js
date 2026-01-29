@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../lib/api';
+import AuthContext from '../context/AuthContext';
 
 const Dashboard = () => {
+  const { accountMode } = useContext(AuthContext);
   const [prices, setPrices] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!accountMode) {
+      setLoading(false);
+      return;
+    }
     fetchData();
-    // Poll prices every 30 seconds
     const priceInterval = setInterval(fetchPrices, 30000);
     return () => clearInterval(priceInterval);
-  }, []);
+  }, [accountMode]);
 
   const fetchData = async () => {
+    if (!accountMode) return;
     try {
       await Promise.all([fetchPrices(), fetchWallet()]);
     } catch (error) {
@@ -26,7 +32,7 @@ const Dashboard = () => {
 
   const fetchPrices = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/pricing/current');
+      const response = await api.get('/api/pricing/current');
       setPrices(response.data);
     } catch (error) {
       console.error('Error fetching prices:', error);
@@ -34,8 +40,9 @@ const Dashboard = () => {
   };
 
   const fetchWallet = async () => {
+    if (!accountMode) return;
     try {
-      const response = await axios.get('http://localhost:5000/api/wallet/balance');
+      const response = await api.get('/api/wallet/balance', { params: { mode: accountMode } });
       setWallet(response.data);
     } catch (error) {
       console.error('Error fetching wallet:', error);

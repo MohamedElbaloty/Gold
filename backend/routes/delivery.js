@@ -4,6 +4,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 const DeliveryRequest = require('../models/DeliveryRequest');
 const Wallet = require('../models/Wallet');
 const Transaction = require('../models/Transaction');
+const { withOptionalTransaction, sessionOpts, withSession } = require('../lib/transaction');
 const router = express.Router();
 
 // Create delivery request
@@ -22,29 +23,25 @@ router.post('/request', authenticate, [
 
     const { goldAmount, weight, deliveryAddress, contactPhone } = req.body;
 
-    // Check wallet balance
-    const wallet = await Wallet.findOne({ userId: req.user._id });
-    if (!wallet || wallet.goldBalance < goldAmount) {
-      return res.status(400).json({ message: 'Insufficient gold balance' });
-    }
+    // Check wallet balance and perform deduct + delivery request in optional transaction
+    const deliveryRequest = await withOptionalTransaction(async (session) => {
+      const wallet = await withSession(Wallet.findOne({ userId: req.user._id }), session);
+      if (!wallet || wallet.goldBalance < goldAmount) {
+        throw new Error('Insufficient gold balance');
+      }
 
-    // Create delivery request
-    const deliveryRequest = await DeliveryRequest.create({
-      userId: req.user._id,
-      goldAmount,
-      weight,
-      deliveryAddress,
-      contactPhone
-    });
+      const dr = await DeliveryRequest.create([{
+        userId: req.user._id,
+        goldAmount,
+        weight,
+        deliveryAddress,
+        contactPhone
+      }], sessionOpts(session));
+      const deliveryRequestDoc = dr[0];
 
-    // Deduct gold from wallet (reserved for delivery)
-    const session = await require('mongoose').startSession();
-    session.startTransaction();
-
-    try {
       wallet.goldBalance -= goldAmount;
       wallet.lastUpdated = new Date();
-      await wallet.save({ session });
+      await wallet.save(sessionOpts(session));
 
       await Transaction.create([{
         userId: req.user._id,
@@ -62,23 +59,21 @@ router.post('/request', authenticate, [
           sarBalance: wallet.sarBalance
         },
         metadata: {
-          deliveryRequestId: deliveryRequest._id
+          deliveryRequestId: deliveryRequestDoc._id
         }
-      }], { session });
+      }], sessionOpts(session));
 
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
+      return deliveryRequestDoc;
+    });
 
     res.status(201).json({
       message: 'Delivery request created',
       deliveryRequest
     });
   } catch (error) {
+    if (error.message === 'Insufficient gold balance') {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

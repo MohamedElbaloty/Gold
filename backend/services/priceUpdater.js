@@ -14,7 +14,7 @@ function startPriceUpdater(intervalSeconds = 30) {
   // Note: node-cron minimum is 1 minute, so for < 60 seconds, we use setInterval
   if (intervalSeconds < 60) {
     // Use setInterval for sub-minute updates
-    setInterval(async () => {
+    const intervalId = setInterval(async () => {
       try {
         await calculatePrices();
         console.log(`Price updated at ${new Date().toISOString()}`);
@@ -23,8 +23,57 @@ function startPriceUpdater(intervalSeconds = 30) {
       }
     }, intervalSeconds * 1000);
     
-    // Also run immediately
-    calculatePrices().catch(err => console.error('Initial price fetch error:', err));
+    // Store interval ID for cleanup
+    priceUpdateJob = { stop: () => clearInterval(intervalId) };
+    
+    // Run immediately and generate initial data if needed
+    (async () => {
+      try {
+        await calculatePrices();
+        console.log(`Initial price fetched at ${new Date().toISOString()}`);
+        
+        // Generate some historical data points if database is empty
+        const PriceSnapshot = require('../models/PriceSnapshot');
+        const count = await PriceSnapshot.countDocuments();
+        if (count < 10) {
+          console.log('Generating initial historical data...');
+          const prices = await require('./pricingService').getCurrentPrices();
+          const now = Date.now();
+          const basePrices = {
+            gold: prices.spotPriceSAR,
+            silver: prices.silverSpotPriceSAR || prices.spotPriceSAR * 0.012,
+            platinum: prices.platinumSpotPriceSAR || prices.spotPriceSAR * 0.46
+          };
+          
+          // Generate 50 historical points (one per minute for last 50 minutes)
+          for (let i = 50; i >= 0; i--) {
+            const timestamp = new Date(now - i * 60000);
+            const variation = (Math.random() - 0.5) * 0.02; // ±1% variation
+            
+            await PriceSnapshot.create({
+              spotPriceUSD: prices.spotPriceUSD,
+              spotPriceSAR: basePrices.gold * (1 + variation),
+              buyPriceSAR: prices.buyPriceSAR,
+              sellPriceSAR: prices.sellPriceSAR,
+              silverSpotPriceUSD: prices.silverSpotPriceUSD,
+              silverSpotPriceSAR: basePrices.silver * (1 + variation),
+              silverBuyPriceSAR: prices.silverBuyPriceSAR,
+              silverSellPriceSAR: prices.silverSellPriceSAR,
+              platinumSpotPriceUSD: prices.platinumSpotPriceUSD,
+              platinumSpotPriceSAR: basePrices.platinum * (1 + variation),
+              platinumBuyPriceSAR: prices.platinumBuyPriceSAR,
+              platinumSellPriceSAR: prices.platinumSellPriceSAR,
+              spread: prices.spread,
+              usdToSarRate: prices.usdToSarRate,
+              timestamp: timestamp
+            });
+          }
+          console.log('Initial historical data generated');
+        }
+      } catch (err) {
+        console.error('Initial price fetch error:', err);
+      }
+    })();
   } else {
     // Use cron for minute-based intervals
     const minutes = Math.floor(intervalSeconds / 60);

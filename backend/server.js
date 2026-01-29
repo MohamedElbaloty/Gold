@@ -1,10 +1,12 @@
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
 
-dotenv.config();
+// Load .env from backend directory (works when run from project root or backend/)
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 
@@ -13,10 +15,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting
+// Rate limiting — skip on localhost and in development to avoid 429
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 500 : 10000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    if (process.env.NODE_ENV !== 'production') return true;
+    const ip = req.ip || req.socket?.remoteAddress || '';
+    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+  }
 });
 app.use('/api/', limiter);
 
@@ -36,6 +45,8 @@ app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/delivery', require('./routes/delivery'));
 app.use('/api/pricing', require('./routes/pricing'));
+app.use('/api/store', require('./routes/store'));
+app.use('/api/news', require('./routes/news'));
 
 // Health check
 app.get('/api/health', (req, res) => {

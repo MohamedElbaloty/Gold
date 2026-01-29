@@ -135,26 +135,57 @@ router.get('/dashboard', async (req, res) => {
 router.get('/orders', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
     const skip = (page - 1) * limit;
+    const type = req.query.type; // 'buy' | 'sell'
+    const status = req.query.status; // 'pending' | 'executed' | 'failed' | 'cancelled'
+    const email = (req.query.email || '').trim().toLowerCase();
 
-    const orders = await Order.find()
+    const filter = {};
+    if (type) filter.type = type;
+    if (status) filter.status = status;
+    if (email) {
+      const users = await User.find({ email: new RegExp(email, 'i') }).select('_id').lean();
+      const ids = users.map((u) => u._id);
+      if (ids.length) filter.userId = { $in: ids };
+      else filter.userId = { $in: [] };
+    }
+
+    const total = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
       .populate('userId', 'email firstName lastName')
       .sort({ createdAt: -1 })
       .limit(limit)
-      .skip(skip);
-
-    const total = await Order.countDocuments();
+      .skip(skip)
+      .lean();
 
     res.json({
       orders,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update order status (e.g. cancel pending only)
+router.put('/orders/:id', [
+  body('status').isIn(['cancelled']).withMessage('Only status "cancelled" allowed')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.status !== 'pending') {
+      return res.status(400).json({ message: 'Only pending orders can be cancelled' });
+    }
+
+    order.status = 'cancelled';
+    await order.save();
+
+    res.json({ message: 'Order cancelled', order });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

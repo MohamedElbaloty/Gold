@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const priceSnapshotSchema = new mongoose.Schema({
+  // Gold (per gram)
   spotPriceUSD: {
     type: Number,
     required: true
@@ -17,6 +18,19 @@ const priceSnapshotSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+
+  // Silver (per gram) - optional for backward compatibility
+  silverSpotPriceUSD: { type: Number, required: false },
+  silverSpotPriceSAR: { type: Number, required: false },
+  silverBuyPriceSAR: { type: Number, required: false },
+  silverSellPriceSAR: { type: Number, required: false },
+
+  // Platinum (per gram) - optional for backward compatibility
+  platinumSpotPriceUSD: { type: Number, required: false },
+  platinumSpotPriceSAR: { type: Number, required: false },
+  platinumBuyPriceSAR: { type: Number, required: false },
+  platinumSellPriceSAR: { type: Number, required: false },
+
   spread: {
     type: Number,
     required: true

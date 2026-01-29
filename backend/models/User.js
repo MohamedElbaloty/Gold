@@ -50,6 +50,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Demo accounts for trading sandbox
+  isDemo: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   lastLogin: Date,
   createdAt: {
     type: Date,

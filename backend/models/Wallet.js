@@ -4,8 +4,11 @@ const walletSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    unique: true
+    required: true
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
   },
   goldBalance: {
     type: Number,
@@ -13,6 +16,12 @@ const walletSchema = new mongoose.Schema({
     min: 0 // Prevent negative balances
   },
   sarBalance: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  // Margin trading: locked margin for open leveraged positions
+  marginLockedSAR: {
     type: Number,
     default: 0,
     min: 0
@@ -39,7 +48,7 @@ const walletSchema = new mongoose.Schema({
   }
 });
 
-// Index for faster queries
-walletSchema.index({ userId: 1 });
+// One real + one demo wallet per user
+walletSchema.index({ userId: 1, isDemo: 1 }, { unique: true });
 
 module.exports = mongoose.model('Wallet', walletSchema);

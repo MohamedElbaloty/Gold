@@ -27,6 +27,21 @@ const merchantSettingsSchema = new mongoose.Schema({
     default: 10000, // Maximum 10kg per trade
     min: 0
   },
+  // Margin trading configuration
+  maxLeverage: {
+    type: Number,
+    default: 20, // e.g. max 1:20 leverage
+    min: 1,
+    max: 100
+  },
+  defaultLeverage: {
+    type: Number,
+    default: 5
+  },
+  contractSizeGrams: {
+    type: Number,
+    default: 1 // lot size in grams (e.g. 1g, 10g, 100g)
+  },
   // Risk controls
   totalExposure: {
     type: Number,

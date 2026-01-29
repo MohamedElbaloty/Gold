@@ -1,67 +1,77 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 const AuthContext = createContext();
+
+const ACCOUNT_MODE_KEY = 'accountMode';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [accountMode, setAccountModeState] = useState(() => localStorage.getItem(ACCOUNT_MODE_KEY) || null);
+
+  const setAccountMode = (mode) => {
+    if (mode === null) {
+      localStorage.removeItem(ACCOUNT_MODE_KEY);
+    } else {
+      localStorage.setItem(ACCOUNT_MODE_KEY, mode);
+    }
+    setAccountModeState(mode);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        try {
-          const response = await axios.get('http://localhost:5000/api/user/profile');
-          setUser(response.data);
-        } catch (error) {
-          // Token invalid, clear it
-          localStorage.removeItem('token');
-          setToken(null);
-          delete axios.defaults.headers.common['Authorization'];
-        }
-      } else {
-        delete axios.defaults.headers.common['Authorization'];
+      if (!token) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+      try {
+        const res = await api.get('/api/user/profile');
+        setUser(res.data);
+      } catch {
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchUser();
   }, [token]);
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        email,
-        password
-      });
-      const { token: newToken, user: userData } = response.data;
+      const res = await api.post('/api/auth/login', { email, password });
+      const { token: newToken, user: userData } = res.data;
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('token', newToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      setAccountModeState(null);
+      localStorage.removeItem(ACCOUNT_MODE_KEY);
       return { success: true };
-    } catch (error) {
+    } catch (err) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed'
+        message: err.response?.data?.message || 'Login failed'
       };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
-      const { token: newToken, user: newUser } = response.data;
+      const res = await api.post('/api/auth/register', userData);
+      const { token: newToken, user: newUser } = res.data;
       setToken(newToken);
       setUser(newUser);
       localStorage.setItem('token', newToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      setAccountModeState(null);
+      localStorage.removeItem(ACCOUNT_MODE_KEY);
       return { success: true };
-    } catch (error) {
+    } catch (err) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Registration failed'
+        message: err.response?.data?.message || 'Registration failed'
       };
     }
   };
@@ -69,12 +79,31 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
+    setAccountModeState(null);
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
+    localStorage.removeItem(ACCOUNT_MODE_KEY);
+  };
+
+  const createDemoAccount = async () => {
+    try {
+      const res = await api.post('/api/auth/demo');
+      const { token: newToken, user: userData } = res.data;
+      setToken(newToken);
+      setUser(userData);
+      localStorage.setItem('token', newToken);
+      setAccountModeState('demo');
+      localStorage.setItem(ACCOUNT_MODE_KEY, 'demo');
+      return { success: true, user: userData };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Failed to create demo account'
+      };
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, accountMode, setAccountMode, login, register, logout, createDemoAccount, loading }}>
       {children}
     </AuthContext.Provider>
   );
