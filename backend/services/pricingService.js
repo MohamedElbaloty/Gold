@@ -78,45 +78,61 @@ async function fetchSpotPriceUSDPerOunce(metal) {
     }
   }
 
-  // Try freegoldprice.org (free API, no key required)
-  try {
-    const symbol = metal === 'gold' ? 'XAU' : metal === 'silver' ? 'XAG' : 'XPT';
-    const url = `https://api.freegoldprice.org/v1/${symbol.toLowerCase()}/USD`;
-    const response = await axios.get(url, { timeout: 5000 });
-    if (response.data && typeof response.data.price === 'number') {
-      return response.data.price;
+  // In production without any API key: skip free APIs (they often 404/SSL fail on Railway) and use fallback directly
+  const inProd = process.env.NODE_ENV === 'production';
+  const hasAnyKey = goldApiKey || metalsApiKey;
+  if (inProd && !hasAnyKey) {
+    if (!priceErrorLogged.has('prod-fallback')) {
+      priceErrorLogged.add('prod-fallback');
+      console.warn('[Price] Production: no GOLDAPI_KEY/METALS_API_KEY set. Using fallback prices. Add a key for live prices.');
     }
-    if (response.data && typeof response.data === 'number') {
-      return response.data;
-    }
-  } catch (error) {
-    logPriceErrorOnce('freegoldprice.org', metal, error);
+    const fallbackPrices = { gold: 2050, silver: 24.5, platinum: 950 };
+    return fallbackPrices[metal] || 2000;
   }
 
-  // Fallback: metals.live free API (best-effort; SNI fix for Railway/some hosts)
-  const key = upper;
-  const envKey = `${key}_PRICE_API_URL`;
-  const url =
-    process.env[envKey] ||
-    (metal === 'gold'
-      ? 'https://api.metals.live/v1/spot/gold'
-      : metal === 'silver'
-        ? 'https://api.metals.live/v1/spot/silver'
-        : metal === 'platinum'
-          ? 'https://api.metals.live/v1/spot/platinum'
-          : null);
-  if (url) {
+  // Try freegoldprice.org (free API, no key required) — often 404; skip in prod when no key
+  if (!inProd || hasAnyKey) {
     try {
-      const agent = new https.Agent({ servername: new URL(url).hostname });
-      const response = await axios.get(url, {
-        timeout: 5000,
-        httpsAgent: agent
-      });
-      const parsed = parseMetalsLiveSpot(response.data, metal);
-      if (typeof parsed === 'number') return parsed;
-      if (typeof response.data === 'number') return response.data;
+      const symbol = metal === 'gold' ? 'XAU' : metal === 'silver' ? 'XAG' : 'XPT';
+      const url = `https://api.freegoldprice.org/v1/${symbol.toLowerCase()}/USD`;
+      const response = await axios.get(url, { timeout: 5000 });
+      if (response.data && typeof response.data.price === 'number') {
+        return response.data.price;
+      }
+      if (response.data && typeof response.data === 'number') {
+        return response.data;
+      }
     } catch (error) {
-      logPriceErrorOnce('metals.live', metal, error);
+      logPriceErrorOnce('freegoldprice.org', metal, error);
+    }
+  }
+
+  // Fallback: metals.live free API (often SSL fail on Railway; skip in prod when no key)
+  if (!inProd || hasAnyKey) {
+    const key = upper;
+    const envKey = `${key}_PRICE_API_URL`;
+    const url =
+      process.env[envKey] ||
+      (metal === 'gold'
+        ? 'https://api.metals.live/v1/spot/gold'
+        : metal === 'silver'
+          ? 'https://api.metals.live/v1/spot/silver'
+          : metal === 'platinum'
+            ? 'https://api.metals.live/v1/spot/platinum'
+            : null);
+    if (url) {
+      try {
+        const agent = new https.Agent({ servername: new URL(url).hostname });
+        const response = await axios.get(url, {
+          timeout: 5000,
+          httpsAgent: agent
+        });
+        const parsed = parseMetalsLiveSpot(response.data, metal);
+        if (typeof parsed === 'number') return parsed;
+        if (typeof response.data === 'number') return response.data;
+      } catch (error) {
+        logPriceErrorOnce('metals.live', metal, error);
+      }
     }
   }
 
