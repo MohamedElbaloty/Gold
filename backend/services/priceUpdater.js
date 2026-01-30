@@ -13,19 +13,18 @@ function startPriceUpdater(intervalSeconds = 30) {
   // Calculate cron expression (every N seconds)
   // Note: node-cron minimum is 1 minute, so for < 60 seconds, we use setInterval
   if (intervalSeconds < 60) {
-    // Use setInterval for sub-minute updates
+    // Use setInterval for sub-minute updates (log only errors to avoid log spam)
     const intervalId = setInterval(async () => {
       try {
         await calculatePrices();
-        console.log(`Price updated at ${new Date().toISOString()}`);
       } catch (error) {
         console.error('Error updating prices:', error);
       }
     }, intervalSeconds * 1000);
-    
+
     // Store interval ID for cleanup
     priceUpdateJob = { stop: () => clearInterval(intervalId) };
-    
+
     // Run immediately and generate initial data if needed
     (async () => {
       try {
@@ -80,7 +79,6 @@ function startPriceUpdater(intervalSeconds = 30) {
     priceUpdateJob = cron.schedule(`*/${minutes} * * * * *`, async () => {
       try {
         await calculatePrices();
-        console.log(`Price updated at ${new Date().toISOString()}`);
       } catch (error) {
         console.error('Error updating prices:', error);
       }

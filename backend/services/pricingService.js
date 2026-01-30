@@ -78,20 +78,20 @@ async function fetchSpotPriceUSDPerOunce(metal) {
     }
   }
 
-  // In production without any API key: skip free APIs (they often 404/SSL fail on Railway) and use fallback directly
   const inProd = process.env.NODE_ENV === 'production';
   const hasAnyKey = goldApiKey || metalsApiKey;
-  if (inProd && !hasAnyKey) {
+  // In production: skip free APIs (they often 404/SSL on Railway) and use fallback to avoid log spam
+  if (inProd) {
     if (!priceErrorLogged.has('prod-fallback')) {
       priceErrorLogged.add('prod-fallback');
-      console.log('[Price] Using fallback prices (optional: set GOLDAPI_KEY or METALS_API_KEY in Railway for live).');
+      console.log('[Price] Using fallback prices. Set GOLDAPI_KEY or METALS_API_KEY in Railway for live prices.');
     }
     const fallbackPrices = { gold: 2050, silver: 24.5, platinum: 950 };
     return fallbackPrices[metal] || 2000;
   }
 
-  // Try freegoldprice.org (free API, no key required) — often 404; skip in prod when no key
-  if (!inProd || hasAnyKey) {
+  // Try freegoldprice.org (free API, no key required) — often 404; only in dev
+  if (hasAnyKey) {
     try {
       const symbol = metal === 'gold' ? 'XAU' : metal === 'silver' ? 'XAG' : 'XPT';
       const url = `https://api.freegoldprice.org/v1/${symbol.toLowerCase()}/USD`;
