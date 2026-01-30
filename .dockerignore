@@ -1,0 +1,10 @@
+node_modules
+frontend
+.git
+.env
+backend/.env
+*.log
+.gitignore
+README.md
+.vscode
+.idea
