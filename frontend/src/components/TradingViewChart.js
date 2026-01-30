@@ -4,6 +4,10 @@ import UiContext from '../context/UiContext';
 /**
  * TradingView Advanced Chart - Gold, Silver, Platinum (same as TradingView).
  * Docs: https://www.tradingview.com/widget-docs/widgets/charts/advanced-chart/
+ *
+ * Known: The widget may log "support-portal-problems 403" and "DataProblemModel" from inside
+ * its iframe; these cannot be suppressed from our page. To hide them in DevTools, use the
+ * console filter box and type: -tradingview -403 -DataProblemModel -support-portal
  */
 const TradingViewChart = ({ symbol = 'OANDA:XAUUSD', theme = 'dark', height = 400, className = '' }) => {
   const containerRef = useRef(null);
