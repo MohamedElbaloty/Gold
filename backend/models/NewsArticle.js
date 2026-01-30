@@ -15,7 +15,6 @@ const newsArticleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-newsArticleSchema.index({ slug: 1 }, { unique: true });
 newsArticleSchema.index({ isPublished: 1, publishedAt: -1 });
 // Use a custom language override field to avoid Mongo treating "language" as text index override
 newsArticleSchema.index(

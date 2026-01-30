@@ -11,7 +11,6 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-categorySchema.index({ slug: 1 }, { unique: true });
 categorySchema.index({ parentId: 1, sortOrder: 1 });
 
 module.exports = mongoose.model('Category', categorySchema);

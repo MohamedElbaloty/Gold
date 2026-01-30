@@ -32,7 +32,6 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-productSchema.index({ slug: 1 }, { unique: true });
 productSchema.index({ title: 'text', description: 'text', sku: 'text', brand: 'text' });
 productSchema.index({ categoryId: 1, isActive: 1 });
 productSchema.index({ isFeatured: 1, isActive: 1 });
