@@ -29,8 +29,12 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gold-trading')
+// Database connection (Railway: set MONGODB_URI in Variables; no useNewUrlParser/useUnifiedTopology in driver 4+)
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/gold-trading';
+if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
+  console.warn('MONGODB_URI not set in production — using localhost (will fail on Railway).');
+}
+mongoose.connect(mongoUri)
 .then(() => console.log('MongoDB connected'))
 .catch(err => {
   console.error('MongoDB connection error:', err.message || err);
