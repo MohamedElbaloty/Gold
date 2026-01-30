@@ -53,6 +53,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
 });
 
+// Production: serve built frontend (React) so GET / returns the app
+if (process.env.NODE_ENV === 'production') {
+  const clientBuild = path.join(__dirname, '../frontend/build');
+  const fs = require('fs');
+  if (fs.existsSync(clientBuild)) {
+    app.use(express.static(clientBuild, { index: false }));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(clientBuild, 'index.html'));
+    });
+  }
+}
+
 // Start price updater service
 const { startPriceUpdater } = require('./services/priceUpdater');
 const MerchantSettings = require('./models/MerchantSettings');

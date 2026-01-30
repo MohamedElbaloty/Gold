@@ -1,16 +1,16 @@
-# Backend API — /app has repo root; start backend directly so /app/server.js is not required
+# Single app: backend + built frontend (Railway serves both from one URL)
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy root package files (dependencies live here)
+# Root + backend
 COPY package.json package-lock.json ./
-
-# Copy backend (API) only; frontend is separate
 COPY backend ./backend/
-
-# Install production dependencies (from repo root)
 RUN npm ci --omit=dev
 
-# Start backend directly — works even when root server.js is missing
+# Frontend: build React so backend can serve it in production
+COPY frontend ./frontend/
+RUN cd frontend && npm ci && CI=true npm run build
+
+# Start backend (serves API + static frontend from /app/frontend/build)
 CMD ["node", "backend/server.js"]
