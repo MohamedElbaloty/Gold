@@ -9,6 +9,9 @@ const rateLimit = require('express-rate-limit');
 // Load .env from backend directory (works when run from project root or backend/)
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+// If you see this in Railway logs = latest code is running (no useNewUrlParser, duplicate indexes fixed)
+console.log('[Gold] Backend started — Mongo driver 4+ (no useNewUrlParser). Set MONGODB_URI on Railway.');
+
 const app = express();
 
 // Middleware
