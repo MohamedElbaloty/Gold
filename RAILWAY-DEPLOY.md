@@ -65,3 +65,42 @@
 - أو **"MONGODB_URI is required"** → المتغير غير مضبوط (راجع الخطوة 3).
 
 إذا استمرت تحذيرات **useNewUrlParser** أو **Duplicate index** فالمشروع ما زال يشغّل نسخة قديمة — تأكد من الخطوة 1 و 2.
+
+---
+
+## تعبيئة المتجر على الموقع المباشر (Seed على الإنتاج)
+
+المنتجات اللي بتظهر على **https://gold-production-57be.up.railway.app/** جاية من قاعدة البيانات اللي مربوطة بالـ **MONGODB_URI** في Railway. لو الموقع بيقول "لا يوجد منتجات" فمعناها قاعدة الإنتاج فاضية.
+
+### الطريقة 1: تشغيل الـ seed محلياً ضد قاعدة الإنتاج
+
+1. من **Railway** → مشروعك → **Variables** انسخ قيمة **MONGODB_URI** (نفس اللي الخدمة بتستخدمه).
+2. من **جذر المشروع** على جهازك شغّل الأمر مع نفس الرابط (استبدل `YOUR_RAILWAY_MONGODB_URI` بالرابط الفعلي):
+
+   **Windows (PowerShell):**
+   ```powershell
+   $env:MONGODB_URI="YOUR_RAILWAY_MONGODB_URI"; npm run seed:store
+   ```
+
+   **Windows (CMD):**
+   ```cmd
+   set MONGODB_URI=YOUR_RAILWAY_MONGODB_URI && npm run seed:store
+   ```
+
+   **Linux / macOS:**
+   ```bash
+   MONGODB_URI="YOUR_RAILWAY_MONGODB_URI" npm run seed:store
+   ```
+
+3. لما تشوف "Seed complete." معناها المنتجات اتحطت في قاعدة الإنتاج.
+4. حدّث صفحة الموقع **https://gold-production-57be.up.railway.app/** — المفروض المنتجات تظهر.
+
+### الطريقة 2: One-off من Railway (إن متوفر)
+
+لو عندك **Railway CLI** وربطت المشروع:
+
+```bash
+railway run npm run seed:store
+```
+
+هيشتغل في بيئة Railway ونفس **MONGODB_URI**، والنتيجة نفس تعبيئة الإنتاج.
