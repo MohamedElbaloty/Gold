@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -14,7 +14,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/trade/orders?page=${page}&limit=20`);
+      const response = await api.get('/api/trade/orders', { params: { page, limit: 20 } });
       setOrders(response.data.orders);
       setPagination(response.data.pagination);
     } catch (error) {

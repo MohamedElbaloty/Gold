@@ -2,12 +2,13 @@
 
 الويدجت (TradingView Chart) قد يظهر في تبويب **Console** رسائل مثل:
 
-- `GET ... support-portal-problems/?language=en 403 (Forbidden)`
+- `GET https://www.tradingview-widget.com/support/support-portal-problems/?language=en 403 (Forbidden)`
+- `2026-01-30T...:Fetch:/support/support-portal-problems/?language=en. Status 403`
+- `Chart.DataProblemModel:Couldn't load support portal problems`
 - `Failed to load resource: 403`
-- `Chart.DataProblemModel: Couldn't load support portal problems`
 - `SES Removing unpermitted intrinsics` (من إضافة المتصفح)
 
-هذه الرسائل صادرة من داخل **iframe** الويدجت ولا يمكن إخفاؤها من كود الموقع. الشارت يعمل بشكل طبيعي رغم ذلك.
+هذه الرسائل صادرة من ويدجت TradingView (أحياناً من داخل **iframe**) ولا تؤثر على عمل الشارت. الشارت يعمل بشكل طبيعي رغم ذلك.
 
 ## إخفاؤها من الكونسول
 
@@ -16,9 +17,11 @@
 3. في صندوق **Filter** اكتب:
 
    ```
-   -tradingview -403 -DataProblemModel -support-portal -SES -lockdown
+   -tradingview -403 -DataProblemModel -support-portal -support-portal-problems -SES -lockdown
    ```
 
    (العلامة `-` تعني "استبعد أي سطر يحتوي على هذا النص")
 
-بهذا تُخفى معظم الرسائل المتعلقة بـ TradingView و‎403 و‎lockdown/SES من قائمة الكونسول.
+بهذا تُخفى معظم الرسائل المتعلقة بـ TradingView و‎403 و‎DataProblemModel من قائمة الكونسول.
+
+**ملاحظة:** سطر الـ 403 الأحمر (طلب الشبكة الفاشل) قد يبقى ظاهراً في تبويب Network؛ لا يمكن إخفاؤه من كود الموقع وهو غير مؤثر.

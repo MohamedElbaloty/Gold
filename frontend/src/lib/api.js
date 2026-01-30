@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-// Same origin in production (backend serves frontend); localhost:5000 in dev
-export const apiBaseUrl = typeof process !== 'undefined' && process.env?.REACT_APP_API_URL !== undefined
-  ? process.env.REACT_APP_API_URL
-  : (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
+// REACT_APP_API_URL = backend URL (set in Railway if frontend/backend separate). Empty = same origin.
+export const apiBaseUrl =
+  typeof process !== 'undefined' && process.env.REACT_APP_API_URL != null && process.env.REACT_APP_API_URL !== ''
+    ? process.env.REACT_APP_API_URL
+    : '';
 
 export const api = axios.create({
   baseURL: apiBaseUrl,

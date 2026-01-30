@@ -14,37 +14,39 @@ console.log('[Gold] Backend started — Mongo driver 4+ (no useNewUrlParser). Se
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS — one service on Railway: same origin; CORS_ORIGIN=* allows all (e.g. if you add a separate frontend later)
+const corsOrigin = process.env.CORS_ORIGIN;
+const corsOpts = corsOrigin === '*' || !corsOrigin
+  ? {}
+  : { origin: corsOrigin };
+app.use(cors(corsOpts));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting — skip on localhost and in development to avoid 429
+// Rate limiting (Railway: all requests counted; no skip by IP)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 500 : 10000,
   standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => {
-    if (process.env.NODE_ENV !== 'production') return true;
-    const ip = req.ip || req.socket?.remoteAddress || '';
-    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
-  }
+  legacyHeaders: false
 });
 app.use('/api/', limiter);
 
-// Database connection (Railway: set MONGODB_URI in Variables; no useNewUrlParser/useUnifiedTopology in driver 4+)
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/gold-trading';
-if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
-  console.warn('MONGODB_URI not set in production — using localhost (will fail on Railway).');
+// Required: MONGODB_URI always; JWT_SECRET in production (Railway Variables)
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error('MONGODB_URI is required. Set it in Railway Variables.');
+  process.exit(1);
+}
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is required in production. Set it in Railway Variables.');
+  process.exit(1);
 }
 mongoose.connect(mongoUri)
 .then(() => console.log('MongoDB connected'))
 .catch(err => {
   console.error('MongoDB connection error:', err.message || err);
-  if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
-    console.error('Set MONGODB_URI in Railway (e.g. MongoDB Atlas connection string).');
-  }
+  process.exit(1);
 });
 
 // Routes

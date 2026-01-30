@@ -10,8 +10,12 @@ const Wallet = require('../models/Wallet');
 
 async function createAdmin() {
   try {
-    // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gold-trading');
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      console.error('MONGODB_URI is required. Set it (e.g. from Railway Variables or .env).');
+      process.exit(1);
+    }
+    await mongoose.connect(uri);
     console.log('Connected to MongoDB');
 
     const email = process.argv[2] || 'admin@example.com';

@@ -40,12 +40,15 @@ async function ensureUniqueSlug(model, baseSlug, excludeId) {
 
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true })
+    // Include categories where isActive is true or not set (Atlas data may lack the field)
+    const list = await Category.find({ $or: [{ isActive: true }, { isActive: { $exists: false } }] })
       .sort({ parentId: 1, sortOrder: 1, name: 1 })
       .lean();
-    res.json({ categories });
+    const categories = Array.isArray(list) ? list : [];
+    return res.json({ categories });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('GET /categories error:', error.message);
+    return res.status(200).json({ categories: [] });
   }
 });
 
@@ -53,7 +56,10 @@ router.get('/categories', async (req, res) => {
 router.get('/categories/slug/:slug', async (req, res) => {
   try {
     const slug = String(req.params.slug || '').trim().toLowerCase();
-    const category = await Category.findOne({ slug, isActive: true }).lean();
+    const category = await Category.findOne({
+      slug,
+      $or: [{ isActive: true }, { isActive: { $exists: false } }]
+    }).lean();
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json({ category });
   } catch (error) {
@@ -106,7 +112,8 @@ router.get('/products', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
     const skip = (page - 1) * limit;
 
-    const filter = { isActive: true };
+    // Include products where isActive is true or not set (Atlas data may lack the field)
+    const filter = { $or: [{ isActive: true }, { isActive: { $exists: false } }] };
 
     if (req.query.ids) {
       const ids = String(req.query.ids)
@@ -126,7 +133,7 @@ router.get('/products', async (req, res) => {
     if (req.query.categorySlug) {
       const cat = await Category.findOne({
         slug: String(req.query.categorySlug).trim().toLowerCase(),
-        isActive: true
+        $or: [{ isActive: true }, { isActive: { $exists: false } }]
       }).select('_id').lean();
       if (cat) filter.categoryId = cat._id;
       else filter.categoryId = null; // no matching category -> return empty
@@ -158,7 +165,11 @@ router.get('/products', async (req, res) => {
       pagination: { page, limit, total, pages: Math.ceil(total / limit) }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('GET /products error:', error.message);
+    return res.status(200).json({
+      products: [],
+      pagination: { page: 1, limit: Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100), total: 0, pages: 0 }
+    });
   }
 });
 

@@ -13,6 +13,7 @@ const HomePage = () => {
 
   const [prices, setPrices] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [catalogProductsLoading, setCatalogProductsLoading] = useState(false);
   const [selectedCatalogSlug, setSelectedCatalogSlug] = useState('');
@@ -39,6 +40,7 @@ const HomePage = () => {
       catalog: lang === 'ar' ? 'الكتالوج' : 'Catalog',
       catalogAll: lang === 'ar' ? 'الكل' : 'All',
       catalogEmpty: lang === 'ar' ? 'لا يوجد منتجات' : 'No products found',
+      catalogEmptyHint: lang === 'ar' ? 'لتعبئة المتجر بمنتجات تجريبية شغّل من جذر المشروع: npm run seed:store' : 'To populate the store with sample products, run from project root: npm run seed:store',
       catalogSearch: lang === 'ar' ? 'بحث' : 'Search',
       cart: lang === 'ar' ? 'السلة' : 'Cart',
       more: lang === 'ar' ? 'المزيد' : 'More'
@@ -62,23 +64,35 @@ const HomePage = () => {
     return () => { mounted = false; clearInterval(t); };
   }, []);
 
-  // Categories — initial load + poll (news on homepage from TradingView widget)
+  // Categories — initial load + poll (with safety timeout so UI never hangs)
   useEffect(() => {
     let mounted = true;
     setError('');
+    setCategoriesLoading(true);
     async function load() {
       try {
         const catsRes = await api.get('/api/store/categories').catch(() => ({ data: { categories: [] } }));
         if (!mounted) return;
-        setCategories(catsRes?.data?.categories || []);
+        const list = Array.isArray(catsRes?.data?.categories) ? catsRes.data.categories : [];
+        setCategories(list);
+        setError('');
       } catch (e) {
         if (!mounted) return;
-        setError(e?.response?.data?.message || e.message || 'Failed to load data');
+        setCategories([]);
+        setError(e?.response?.data?.message || e.message || (lang === 'ar' ? 'فشل تحميل التصنيفات' : 'Failed to load categories'));
+      } finally {
+        if (mounted) setCategoriesLoading(false);
       }
     }
     load();
+    const safetyTimeout = setTimeout(() => {
+      if (mounted) {
+        setCategoriesLoading(false);
+        setCategories((prev) => (prev.length ? prev : []));
+      }
+    }, 12000);
     const poll = setInterval(load, 60 * 1000);
-    return () => { mounted = false; clearInterval(poll); };
+    return () => { mounted = false; clearTimeout(safetyTimeout); clearInterval(poll); };
   }, [lang]);
 
   // Sync selected catalog from URL (e.g. /?catalog=pamp-bullion)
@@ -217,13 +231,18 @@ const HomePage = () => {
         </WidgetErrorBoundary>
       </div>
 
-      {/* Catalog - part of home: sidebar + products (before local chart) */}
+      {/* Catalog - part of home: sidebar + products (before chart) */}
       <div className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <aside className="md:col-span-3">
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
               <div className="text-sm font-semibold text-white">{lang === 'ar' ? 'التصنيفات' : 'Categories'}</div>
               <div className="mt-3 flex flex-col gap-1 max-h-[50vh] overflow-y-auto">
+                {categoriesLoading ? (
+                  <div className="py-4 text-center text-white/60 text-sm">{lang === 'ar' ? 'جارٍ تحميل التصنيفات...' : 'Loading categories...'}</div>
+                ) : error ? (
+                  <div className="py-2 text-sm text-red-400">{error}</div>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {
@@ -240,7 +259,7 @@ const HomePage = () => {
                 >
                   {labels.catalogAll}
                 </button>
-                {categories.map((c) => {
+                {!categoriesLoading && categories.map((c) => {
                   const isActive = selectedCatalogSlug === c.slug;
                   return (
                     <button
@@ -284,7 +303,10 @@ const HomePage = () => {
               {catalogProductsLoading ? (
                 <div className="py-10 text-center text-white/70">{lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}</div>
               ) : catalogProducts.length === 0 ? (
-                <div className="py-10 text-center text-white/70">{labels.catalogEmpty}</div>
+                <div className="py-10 text-center">
+                  <p className="text-white/70">{labels.catalogEmpty}</p>
+                  <p className="mt-2 text-xs text-white/50 max-w-md mx-auto">{labels.catalogEmptyHint}</p>
+                </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

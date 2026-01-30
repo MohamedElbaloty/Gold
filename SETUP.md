@@ -14,51 +14,35 @@ npm install
 cd ..
 ```
 
-### 2. Setup MongoDB
+### 2. MongoDB (required)
 
-Make sure MongoDB is running on your system. You can:
-- Use local MongoDB: `mongodb://localhost:27017`
-- Or use MongoDB Atlas (cloud): Update the connection string in `.env`
+- **Railway**: set **MONGODB_URI** in Variables (from Railway MongoDB plugin or MongoDB Atlas).
+- No default URL — **MONGODB_URI** must be set (Railway or in `backend/.env` for scripts).
 
-### 3. Configure Environment Variables
+### 3. Environment Variables
 
-Create `backend/.env` file:
+Create `backend/.env` from `backend/.env.example` and set:
 
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/gold-trading
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_EXPIRE=7d
-NODE_ENV=development
-USD_TO_SAR_RATE=3.75
-```
-
-**Important**: Change `JWT_SECRET` to a strong random string in production!
+- **MONGODB_URI** — from Railway (MongoDB plugin/Atlas). Required.
+- **JWT_SECRET** — strong random string in production.
+- **PORT**, **JWT_EXPIRE**, **USD_TO_SAR_RATE** as needed.
 
 ### 4. Start the Application
 
-**Option 1: Run both together (recommended)**
+**Railway**: Deploy from GitHub; set Variables (MONGODB_URI, etc.). No localhost.
+
+**Local / scripts:**
+
 ```bash
 npm run dev
 ```
 
-**Option 2: Run separately**
+Or: Terminal 1 `npm run server`, Terminal 2 `cd frontend && npm start`.
 
-Terminal 1 (Backend):
-```bash
-npm run server
-```
+### 5. Access
 
-Terminal 2 (Frontend):
-```bash
-cd frontend
-npm start
-```
-
-### 5. Access the Application
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+- **Railway**: use the app URL Railway gives you.
+- **Local**: frontend and backend URLs depend on your setup; set **REACT_APP_API_URL** if frontend and backend are on different origins.
 
 ## Gold Price API Configuration
 
@@ -92,11 +76,10 @@ Or use MongoDB Compass/Studio 3T to change the role field.
 
 ## Testing the System
 
-1. **Register a new account** at http://localhost:3000/register
+1. **Register a new account** at the app URL (Railway or your frontend URL).
 2. **Deposit SAR** (for testing):
    ```bash
-   # Use Postman or curl
-   POST http://localhost:5000/api/wallet/deposit
+   POST <BACKEND_URL>/api/wallet/deposit
    Headers: Authorization: Bearer <your-token>
    Body: { "amount": 10000 }
    ```
@@ -122,9 +105,9 @@ Or use MongoDB Compass/Studio 3T to change the role field.
 - Update to a paid API service
 
 ### Frontend Can't Connect to Backend
-- Ensure backend is running on port 5000
-- Check CORS settings in `backend/server.js`
-- Verify API URL in frontend code (should be `http://localhost:5000`)
+- On Railway: backend and frontend usually same origin; no extra API URL.
+- If frontend and backend are on different domains, set **REACT_APP_API_URL** to the backend URL.
+- Check CORS in `backend/server.js` if needed.
 
 ## Production Deployment
 

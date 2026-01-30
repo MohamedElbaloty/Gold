@@ -53,16 +53,25 @@
         function shouldSuppressConsole() {
           var s = '';
           for (var i = 0; i < arguments.length; i++) s += (arguments[i] != null ? arguments[i].toString() : '') + ' ';
-          if (/support-portal-problems|Couldn't load support portal|DataProblemModel|Chart\.DataProblemModel/.test(s)) return true;
-          if (/tradingview-widget|Fetch:.*support|Status 403.*support|support.*403/.test(s)) return true;
+          if (/support-portal-problems|support-portal-problems\?/.test(s)) return true;
+          if (/Couldn't load support portal|DataProblemModel|Chart\.DataProblemModel/.test(s)) return true;
+          if (/tradingview-widget|Fetch:.*support|Status 403|support.*403|:\/support\//.test(s)) return true;
           if (/Invalid environment undefined/.test(s) && /snowplow|embed-widget/.test(s)) return true;
-          if (/SES Removing unpermitted intrinsics|lockdown-install|unpermitted intrinsics|lockdown-install\.js/.test(s)) return true;
+          if (/SES Removing unpermitted intrinsics|lockdown-install|unpermitted intrinsics|lockdown\.js/.test(s)) return true;
           return false;
         }
         var origLog = console.log, origWarn = console.warn, origError = console.error;
-        console.log = function () { if (shouldSuppressConsole.apply(null, arguments)) return; return origLog.apply(console, arguments); };
-        console.warn = function () { if (shouldSuppressConsole.apply(null, arguments)) return; return origWarn.apply(console, arguments); };
-        console.error = function () { if (shouldSuppressConsole.apply(null, arguments)) return; return origError.apply(console, arguments); };
+        function applyConsolePatch() {
+          console.log = function () { if (shouldSuppressConsole.apply(null, arguments)) return; return origLog.apply(console, arguments); };
+          console.warn = function () { if (shouldSuppressConsole.apply(null, arguments)) return; return origWarn.apply(console, arguments); };
+          console.error = function () { if (shouldSuppressConsole.apply(null, arguments)) return; return origError.apply(console, arguments); };
+        }
+        applyConsolePatch();
+        if (window.addEventListener) {
+          window.addEventListener('load', applyConsolePatch);
+          var reapply = 0;
+          var tid = setInterval(function () { reapply++; applyConsolePatch(); if (reapply >= 5) clearInterval(tid); }, 2000);
+        }
 
         function isThirdPartyScriptError(message, source) {
           var msg = (message || '').toString().trim();
@@ -71,7 +80,9 @@
             source &&
             (source.indexOf('tradingview.com') !== -1 ||
               source.indexOf('s3.tradingview.com') !== -1);
-          return isScriptError || isTradingView;
+          var isTvOrLockdownMsg = /SES Removing unpermitted|DataProblemModel|support portal problems|lockdown-install/.test(msg);
+          var isLockdownSource = source && (source.indexOf('lockdown') !== -1 || source.indexOf('tradingview') !== -1);
+          return isScriptError || isTradingView || isTvOrLockdownMsg || isLockdownSource;
         }
 
         // Suppress third-party script errors before React/dev-overlay attaches

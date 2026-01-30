@@ -49,48 +49,26 @@ A full-stack web application for buying, selling, and storing gold bullion digit
 
 ### Prerequisites
 - Node.js (v14+)
-- MongoDB (local or cloud instance)
+- MongoDB (Railway MongoDB plugin or Atlas — **MONGODB_URI** required)
 
-### Backend Setup
+### Deploy on Railway (recommended)
 
-1. Install dependencies:
-```bash
-npm install
-```
+1. Connect the repo to Railway and deploy from **main**.
+2. Add **MONGODB_URI** in Railway Variables (from MongoDB plugin or Atlas connection string).
+3. No `localhost` defaults — all config from Railway env.
 
-2. Create `.env` file in `backend/` directory:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/gold-trading
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_EXPIRE=7d
-NODE_ENV=development
-USD_TO_SAR_RATE=3.75
-```
+See **RAILWAY-DEPLOY.md** for details.
 
-3. Start the backend server:
-```bash
-npm run server
-```
+### Backend (e.g. for scripts or local run)
 
-### Frontend Setup
+1. Install: `npm install`
+2. Set **MONGODB_URI** (e.g. in `backend/.env` or Railway Variables). Copy `backend/.env.example` to `backend/.env` and fill values.
+3. Start: `npm run server`
 
-1. Navigate to frontend directory:
-```bash
-cd frontend
-```
+### Frontend
 
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the frontend:
-```bash
-npm start
-```
-
-The app will open at `http://localhost:3000`
+1. `cd frontend && npm install && npm start`
+2. API URL: set **REACT_APP_API_URL** if frontend and backend are on different origins; otherwise same-origin (empty) is used.
 
 ## API Endpoints
 

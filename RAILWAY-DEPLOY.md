@@ -1,6 +1,35 @@
-# Railway — إصلاح التحذيرات واتصال MongoDB
+# Railway — خدمة واحدة (فرونت + باك) من GitHub
 
-إذا ظهرت تحذيرات **useNewUrlParser** أو **Duplicate schema index** أو خطأ **ECONNREFUSED localhost:27017**:
+## كيف تكون فرونت وباك في خدمة واحدة؟
+
+الريبو فيه **Dockerfile** واحد في الجذر. لما تربط الريبو من GitHub على Railway:
+
+1. **New Project** → **Deploy from GitHub repo** → اختر ريبو Gold.
+2. Railway يعمل **خدمة واحدة (Service)** من الريبو.
+3. الـ **Dockerfile** يبني الفرونت (React build) ثم يشغّل الباك إند (Node).
+4. الباك إند يقدّم:
+   - **API** على `/api/*`
+   - **الواجهة (الفرونت)** على `/` وكل المسارات (نفس الرابط).
+
+يعني: **ريبو واحد من GitHub = خدمة واحدة = رابط واحد** فيه الواجهة والـ API مع بعض. مفيش حاجة تانية تعملها من ناحية "سيرفسين منفصلين".
+
+### المتغيرات المطلوبة في Railway (Variables)
+
+| المتغير | مطلوب؟ | ملاحظة |
+|--------|--------|--------|
+| **MONGODB_URI** | نعم | رابط MongoDB (Atlas أو غيره). |
+| **JWT_SECRET** | نعم | سري عشوائي طويل (لتسجيل الدخول والتسجيل). |
+| **NODE_ENV** | لا | Railway يضبطه غالباً = production. |
+| **CORS_ORIGIN** | لا | ممكن تتركه `*` أو تضبطه لاحقاً. |
+| **PORT** | لا | Railway يضبطه تلقائياً. |
+
+بعد ما تضيف **MONGODB_URI** و **JWT_SECRET** وتعمل **Deploy** (أو Redeploy)، الخدمة الواحدة تشتغل وتروح على الرابط اللي Railway يعطيك.
+
+---
+
+## إصلاح التحذيرات واتصال MongoDB
+
+إذا ظهرت تحذيرات **useNewUrlParser** أو **Duplicate schema index** أو خطأ اتصال MongoDB:
 
 ## 1) التأكد من الريبو والفرع
 
@@ -33,6 +62,6 @@
 بعد الـ Redeploy في اللوق يجب أن ترى إما:
 
 - **"MongoDB connected"** → الاتصال يعمل.
-- أو **"MONGODB_URI not set in production"** → المتغير غير مقروء (راجع الخطوة 3).
+- أو **"MONGODB_URI is required"** → المتغير غير مضبوط (راجع الخطوة 3).
 
 إذا استمرت تحذيرات **useNewUrlParser** أو **Duplicate index** فالمشروع ما زال يشغّل نسخة قديمة — تأكد من الخطوة 1 و 2.

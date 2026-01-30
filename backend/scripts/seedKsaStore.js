@@ -49,9 +49,13 @@ async function upsertNews(a) {
 }
 
 async function main() {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/gold-trading';
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('MONGODB_URI is required. Set it (e.g. from Railway Variables or .env).');
+    process.exit(1);
+  }
   await mongoose.connect(uri);
-  console.log('Connected', uri);
+  console.log('Connected to MongoDB');
 
   // Ensure indexes are compatible (especially News text index)
   try {

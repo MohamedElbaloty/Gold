@@ -8,7 +8,8 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "nodemon backend/server.js",
     "client": "cd frontend && npm start",
-    "install-all": "npm install && cd frontend && npm install"
+    "install-all": "npm install && cd frontend && npm install",
+    "seed:store": "node backend/scripts/seedKsaStore.js"
   },
   "keywords": [
     "gold",
