@@ -48,14 +48,17 @@ async function upsertNews(a) {
   );
 }
 
-async function main() {
+async function seedStore({ connectIfNeeded = true } = {}) {
   const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.error('MONGODB_URI is required. Set it (e.g. from Railway Variables or .env).');
-    process.exit(1);
+  if (!uri && connectIfNeeded) {
+    throw new Error('MONGODB_URI is required. Set it (e.g. from Railway Variables or .env).');
   }
-  await mongoose.connect(uri);
-  console.log('Connected to MongoDB');
+
+  const shouldConnect = connectIfNeeded && mongoose.connection.readyState !== 1;
+  if (shouldConnect) {
+    await mongoose.connect(uri);
+    console.log('Connected to MongoDB');
+  }
 
   // Ensure indexes are compatible (especially News text index)
   try {
@@ -301,11 +304,29 @@ async function main() {
   });
 
   console.log('Seed complete.');
-  await mongoose.disconnect();
+
+  const [products, categories] = await Promise.all([
+    Product.countDocuments({}),
+    Category.countDocuments({})
+  ]);
+
+  // Disconnect only when we connected inside this function (CLI use)
+  if (shouldConnect) {
+    await mongoose.disconnect().catch(() => {});
+  }
+
+  return { products, categories };
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// CLI usage: `node backend/scripts/seedKsaStore.js`
+if (require.main === module) {
+  seedStore({ connectIfNeeded: true })
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error(e?.message || e);
+      process.exit(1);
+    });
+}
+
+module.exports = { seedStore };
 

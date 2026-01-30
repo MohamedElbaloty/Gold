@@ -113,6 +113,34 @@ app.get('/api/health/db', async (req, res) => {
   }
 });
 
+// One-off seeding for production DB (protected by SEED_SECRET)
+let seedInProgress = false;
+app.post('/api/internal/seed/store', async (req, res) => {
+  try {
+    const secret = process.env.SEED_SECRET;
+    if (!secret) return res.status(404).json({ ok: false, message: 'Not found' });
+
+    const provided = String(req.get('x-seed-secret') || req.query.secret || '').trim();
+    if (!provided || provided !== secret) {
+      return res.status(401).json({ ok: false, message: 'Unauthorized' });
+    }
+
+    if (seedInProgress) {
+      return res.status(409).json({ ok: false, message: 'Seed already running' });
+    }
+    seedInProgress = true;
+
+    const { seedStore } = require('./scripts/seedKsaStore');
+    const result = await seedStore({ connectIfNeeded: false });
+
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: error?.message || String(error) });
+  } finally {
+    seedInProgress = false;
+  }
+});
+
 // Production: serve built frontend (React) so GET / returns the app
 if (process.env.NODE_ENV === 'production') {
   const clientBuild = path.join(__dirname, '../frontend/build');
