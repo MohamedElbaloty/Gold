@@ -6,11 +6,14 @@
 
 - **Settings** → **Source**: يجب أن يكون مربوطاً بنفس الريبو على GitHub (مثلاً `MohamedElbaloty/Gold`).
 - الفرع: **main** (أو الفرع اللي فيه آخر التعديلات).
+- افتح الريبو على GitHub وتأكد أن `backend/server.js` **لا** يحتوي على `useNewUrlParser` داخل `mongoose.connect()` — إذا وجدته فالريبو قديم.
 
 ## 2) إعادة البناء من الصفر (بدون كاش)
 
+- في **Variables** أضف متغيراً مؤقتاً: الاسم **`NO_CACHE`** والقيمة **`1`** (يجبر Docker على بناء نظيف).
 - **Deployments** → الثلاث نقاط بجانب آخر Deploy → **Redeploy**.
-- إذا وُجد خيار **"Clear build cache and redeploy"** أو **"Rebuild"** استخدمه حتى يُبنى المشروع من آخر كود.
+- إذا وُجد خيار **"Clear build cache and redeploy"** أو **"Rebuild"** استخدمه.
+- بعد نجاح التشغيل يمكنك حذف `NO_CACHE` إن أردت.
 
 ## 3) متغير MONGODB_URI
 
