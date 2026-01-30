@@ -84,7 +84,7 @@ async function fetchSpotPriceUSDPerOunce(metal) {
   if (inProd && !hasAnyKey) {
     if (!priceErrorLogged.has('prod-fallback')) {
       priceErrorLogged.add('prod-fallback');
-      console.warn('[Price] Production: no GOLDAPI_KEY/METALS_API_KEY set. Using fallback prices. Add a key for live prices.');
+      console.log('[Price] Using fallback prices (optional: set GOLDAPI_KEY or METALS_API_KEY in Railway for live).');
     }
     const fallbackPrices = { gold: 2050, silver: 24.5, platinum: 950 };
     return fallbackPrices[metal] || 2000;
