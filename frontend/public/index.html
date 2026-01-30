@@ -13,24 +13,25 @@
     <title>Gold Trading Platform</title>
     <script>
       (function () {
-        // 1) Intercept fetch/XHR for support-portal (when widget runs in main window)
-        var tvSupportUrl = 'tradingview-widget.com/support';
-        var tvSupportPath = 'support-portal-problems';
+        // 1) Intercept fetch/XHR for support-portal (TradingView widget 403 — avoid request and noise)
+        function isTvSupportUrl(url) {
+          if (typeof url !== 'string') return false;
+          return url.indexOf('tradingview-widget') !== -1 && (url.indexOf('support') !== -1 || url.indexOf('problems') !== -1) ||
+            url.indexOf('support-portal-problems') !== -1;
+        }
         var emptyJson = function () { return Promise.resolve({}); };
         var fakeRes = { ok: true, status: 200, json: emptyJson, text: function () { return Promise.resolve('{}'); } };
         var origFetch = window.fetch;
         if (origFetch) {
           window.fetch = function (input, init) {
             var url = typeof input === 'string' ? input : (input && input.url) || '';
-            if (url.indexOf(tvSupportUrl) !== -1 || url.indexOf(tvSupportPath) !== -1) return Promise.resolve(fakeRes);
+            if (isTvSupportUrl(url)) return Promise.resolve(fakeRes);
             return origFetch.apply(this, arguments);
           };
         }
         var origOpen = XMLHttpRequest.prototype.open;
         XMLHttpRequest.prototype.open = function (method, url) {
-          if (typeof url === 'string' && (url.indexOf(tvSupportUrl) !== -1 || url.indexOf(tvSupportPath) !== -1)) {
-            this._skipTvSupport = true;
-          }
+          if (isTvSupportUrl(url)) this._skipTvSupport = true;
           return origOpen.apply(this, arguments);
         };
         var origSend = XMLHttpRequest.prototype.send;
@@ -52,8 +53,8 @@
         function shouldSuppressConsole() {
           var s = '';
           for (var i = 0; i < arguments.length; i++) s += (arguments[i] != null ? arguments[i].toString() : '') + ' ';
-          if (/support-portal-problems|Couldn't load support portal|Chart\.DataProblemModel.*support/.test(s)) return true;
-          if (/tradingview-widget.*403|Fetch:.*support/.test(s)) return true;
+          if (/support-portal-problems|Couldn't load support portal|DataProblemModel|Chart\.DataProblemModel/.test(s)) return true;
+          if (/tradingview-widget|Fetch:.*support|Status 403.*support|support.*403/.test(s)) return true;
           if (/Invalid environment undefined/.test(s) && /snowplow|embed-widget/.test(s)) return true;
           if (/SES Removing unpermitted intrinsics|lockdown-install|unpermitted intrinsics|lockdown-install\.js/.test(s)) return true;
           return false;
