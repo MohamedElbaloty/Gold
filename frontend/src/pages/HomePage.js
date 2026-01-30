@@ -4,7 +4,6 @@ import UiContext from '../context/UiContext';
 import { api } from '../lib/api';
 import TradingViewTicker from '../components/TradingViewTicker';
 import TradingViewChart from '../components/TradingViewChart';
-import TradingViewNews from '../components/TradingViewNews';
 import WidgetErrorBoundary from '../components/WidgetErrorBoundary';
 
 const HomePage = () => {
@@ -22,6 +21,8 @@ const HomePage = () => {
   const [catalogDisplayLimit, setCatalogDisplayLimit] = useState(CATALOG_INITIAL_LIMIT);
   const [error, setError] = useState('');
   const [selectedChartMetal, setSelectedChartMetal] = useState('gold');
+  const [newsArticles, setNewsArticles] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(false);
 
   const labels = useMemo(
     () => ({
@@ -109,6 +110,25 @@ const HomePage = () => {
     loadProducts();
     return () => { mounted = false; };
   }, [selectedCatalogSlug]);
+
+  // Latest news from API (no TradingView widget = no duplicate chart)
+  useEffect(() => {
+    let mounted = true;
+    setNewsLoading(true);
+    api.get('/api/news/feed', { params: { lang, limit: 6 } })
+      .then((res) => {
+        if (!mounted) return;
+        const data = res.data?.articles || res.data || [];
+        setNewsArticles(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (mounted) setNewsArticles([]);
+      })
+      .finally(() => {
+        if (mounted) setNewsLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [lang]);
 
   const currency = prices?.currency || 'SAR';
 
@@ -319,84 +339,102 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* RealTime Metal Price Chart — فوق الشارت تختار المعدن، الشارت المختار بعرض الصفحة */}
-      <div className="mt-6 w-full">
-        <div className="rounded-2xl border border-white/10 bg-black/30 text-white p-4">
-          <div className="mb-3 text-center text-sm font-semibold">{labels.chart}</div>
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <button
-              type="button"
-              onClick={() => setSelectedChartMetal('gold')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+      {/* RealTime Metal Price Chart — مرة واحدة فقط فوق الأخبار، بدون تكرار */}
+      <section className="mt-6 w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 text-white p-4" aria-label={labels.chart}>
+        <div className="mb-3 text-center text-sm font-semibold">{labels.chart}</div>
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setSelectedChartMetal('gold')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+              selectedChartMetal === 'gold'
+                ? 'bg-brand-gold text-black'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            {labels.gold}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChartMetal('silver')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+              selectedChartMetal === 'silver'
+                ? 'bg-brand-gold text-black'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            {labels.silver}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChartMetal('platinum')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+              selectedChartMetal === 'platinum'
+                ? 'bg-brand-gold text-black'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            {labels.platinum}
+          </button>
+        </div>
+        <div className="w-full min-h-[400px] relative z-0">
+          <WidgetErrorBoundary title={lang === 'ar' ? 'تعذر تحميل الشارت' : 'Chart could not load'}>
+            <TradingViewChart
+              key={selectedChartMetal}
+              symbol={
                 selectedChartMetal === 'gold'
-                  ? 'bg-brand-gold text-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/20'
-              }`}
-            >
-              {labels.gold}
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedChartMetal('silver')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-                selectedChartMetal === 'silver'
-                  ? 'bg-brand-gold text-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/20'
-              }`}
-            >
-              {labels.silver}
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedChartMetal('platinum')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-                selectedChartMetal === 'platinum'
-                  ? 'bg-brand-gold text-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/20'
-              }`}
-            >
-              {labels.platinum}
-            </button>
-          </div>
-          <div className="w-full">
-            <WidgetErrorBoundary title={lang === 'ar' ? 'تعذر تحميل الشارت' : 'Chart could not load'}>
-              <TradingViewChart
-                key={selectedChartMetal}
-                symbol={
-                  selectedChartMetal === 'gold'
-                    ? 'OANDA:XAUUSD'
-                    : selectedChartMetal === 'silver'
-                    ? 'OANDA:XAGUSD'
-                    : 'OANDA:XPTUSD'
-                }
-                theme={theme === 'dark' ? 'dark' : 'light'}
-                height={400}
-                className="w-full"
-              />
-            </WidgetErrorBoundary>
-          </div>
-        </div>
-      </div>
-
-      {/* أخبار السوق من TradingView — تحت الشارت */}
-      <div className="mt-6 w-full">
-        <div className="rounded-2xl border border-white/10 bg-black/30 text-white p-4">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="h-px w-12 bg-brand-gold/70" />
-            <div className="text-base font-semibold">{labels.newsFromTv}</div>
-            <div className="h-px w-12 bg-brand-gold/70" />
-          </div>
-          <p className="text-center text-xs text-white/60 mb-3">{lang === 'ar' ? labels.newsNoteAr : labels.newsNoteEn}</p>
-          <WidgetErrorBoundary title={lang === 'ar' ? 'تعذر تحميل الأخبار' : 'News could not load'}>
-            <TradingViewNews key={lang} theme={theme === 'dark' ? 'dark' : 'light'} height={400} className="w-full" />
+                  ? 'OANDA:XAUUSD'
+                  : selectedChartMetal === 'silver'
+                  ? 'OANDA:XAGUSD'
+                  : 'OANDA:XPTUSD'
+              }
+              theme={theme === 'dark' ? 'dark' : 'light'}
+              height={400}
+              className="w-full"
+            />
           </WidgetErrorBoundary>
-          <div className="mt-4 text-center">
-            <Link to="/news" className="inline-flex items-center justify-center h-10 px-5 rounded-xl bg-brand-gold text-black text-sm font-medium">
-              {labels.viewAll}
-            </Link>
-          </div>
         </div>
-      </div>
+      </section>
+
+      {/* أخبار السوق — تحت الشارت فقط، بدون ويدجت شارت (قائمة من API) */}
+      <section className="mt-6 w-full relative z-10 rounded-2xl border border-white/10 bg-black/30 text-white p-4" aria-label={labels.newsFromTv}>
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="h-px w-12 bg-brand-gold/70" />
+          <div className="text-base font-semibold">{labels.newsFromTv}</div>
+          <div className="h-px w-12 bg-brand-gold/70" />
+        </div>
+        <p className="text-center text-xs text-white/60 mb-3">{lang === 'ar' ? labels.newsNoteAr : labels.newsNoteEn}</p>
+        {newsLoading ? (
+          <p className="text-center text-sm text-white/60 py-4">{lang === 'ar' ? 'جاري تحميل الأخبار...' : 'Loading news...'}</p>
+        ) : newsArticles.length === 0 ? (
+          <p className="text-center text-sm text-white/60 py-4">{lang === 'ar' ? 'لا توجد أخبار حالياً.' : 'No news at the moment.'}</p>
+        ) : (
+          <ul className="space-y-3">
+            {newsArticles.slice(0, 6).map((a, i) => (
+              <li key={a.id || a._id || i}>
+                <a
+                  href={a.sourceUrl || a.url || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-lg p-3 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white text-sm transition"
+                >
+                  <span className="line-clamp-2">{a.title || a.headline || ''}</span>
+                  {a.publishedAt && (
+                    <span className="text-xs text-white/50 mt-1 block">
+                      {new Date(a.publishedAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-4 text-center">
+          <Link to="/news" className="inline-flex items-center justify-center h-10 px-5 rounded-xl bg-brand-gold text-black text-sm font-medium">
+            {labels.viewAll}
+          </Link>
+        </div>
+      </section>
 
       {/* About Section */}
       <div className="mt-16">

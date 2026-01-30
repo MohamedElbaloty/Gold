@@ -15,7 +15,7 @@ function applyDir(lang) {
 }
 
 export const UiProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('ui.theme') || 'light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('ui.theme') || 'dark');
   const [lang, setLang] = useState(() => localStorage.getItem('ui.lang') || 'ar');
 
   useEffect(() => {
