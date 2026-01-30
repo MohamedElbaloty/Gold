@@ -68,6 +68,51 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
 });
 
+// DB check (safe, no secrets): confirms Railway sees Atlas + data counts
+app.get('/api/health/db', async (req, res) => {
+  try {
+    const readyState = mongoose.connection.readyState; // 0..3
+    const state =
+      readyState === 0 ? 'disconnected'
+      : readyState === 1 ? 'connected'
+      : readyState === 2 ? 'connecting'
+      : readyState === 3 ? 'disconnecting'
+      : 'unknown';
+
+    // Lazy-require models so this endpoint doesn't affect startup order
+    const Product = require('./models/Product');
+    const Category = require('./models/Category');
+
+    const [products, categories, sample] = await Promise.all([
+      Product.countDocuments({}),
+      Category.countDocuments({}),
+      Product.find({})
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .select('_id title slug categoryId isActive createdAt')
+        .lean()
+    ]);
+
+    return res.json({
+      ok: true,
+      timestamp: new Date(),
+      mongo: {
+        state,
+        readyState,
+        dbName: mongoose.connection?.db?.databaseName || mongoose.connection?.name || null
+      },
+      counts: { products, categories },
+      sampleProducts: Array.isArray(sample) ? sample : []
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      timestamp: new Date(),
+      error: error?.message || String(error)
+    });
+  }
+});
+
 // Production: serve built frontend (React) so GET / returns the app
 if (process.env.NODE_ENV === 'production') {
   const clientBuild = path.join(__dirname, '../frontend/build');
