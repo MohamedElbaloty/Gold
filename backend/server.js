@@ -1,3 +1,4 @@
+// Gold backend — deploy from GitHub main (no useNewUrlParser; MONGODB_URI required on Railway)
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
