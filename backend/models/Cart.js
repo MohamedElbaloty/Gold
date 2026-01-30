@@ -16,7 +16,7 @@ const cartSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-cartSchema.index({ userId: 1 }, { unique: true });
+// userId already has unique: true in schema above — no duplicate index
 
 module.exports = mongoose.model('Cart', cartSchema);
 
