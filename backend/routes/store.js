@@ -40,8 +40,8 @@ async function ensureUniqueSlug(model, baseSlug, excludeId) {
 
 router.get('/categories', async (req, res) => {
   try {
-    // Include categories where isActive is true or not set (Atlas data may lack the field)
-    const list = await Category.find({ $or: [{ isActive: true }, { isActive: { $exists: false } }] })
+    // Return all categories (so Atlas data shows regardless of isActive / field names)
+    const list = await Category.find({})
       .sort({ parentId: 1, sortOrder: 1, name: 1 })
       .lean();
     const categories = Array.isArray(list) ? list : [];
@@ -56,10 +56,7 @@ router.get('/categories', async (req, res) => {
 router.get('/categories/slug/:slug', async (req, res) => {
   try {
     const slug = String(req.params.slug || '').trim().toLowerCase();
-    const category = await Category.findOne({
-      slug,
-      $or: [{ isActive: true }, { isActive: { $exists: false } }]
-    }).lean();
+    const category = await Category.findOne({ slug }).lean();
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json({ category });
   } catch (error) {
@@ -112,8 +109,8 @@ router.get('/products', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
     const skip = (page - 1) * limit;
 
-    // Include products where isActive is true or not set (Atlas data may lack the field)
-    const filter = { $or: [{ isActive: true }, { isActive: { $exists: false } }] };
+    // Return all active products (no isActive filter so Atlas data shows)
+    const filter = {};
 
     if (req.query.ids) {
       const ids = String(req.query.ids)
@@ -132,8 +129,7 @@ router.get('/products', async (req, res) => {
     // Resolve category by slug if provided
     if (req.query.categorySlug) {
       const cat = await Category.findOne({
-        slug: String(req.query.categorySlug).trim().toLowerCase(),
-        $or: [{ isActive: true }, { isActive: { $exists: false } }]
+        slug: String(req.query.categorySlug).trim().toLowerCase()
       }).select('_id').lean();
       if (cat) filter.categoryId = cat._id;
       else filter.categoryId = null; // no matching category -> return empty
