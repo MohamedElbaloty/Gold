@@ -14,6 +14,9 @@ console.log('[Gold] Backend started — Mongo driver 4+ (no useNewUrlParser). Se
 
 const app = express();
 
+// Railway (and most reverse proxies) send X-Forwarded-For — trust proxy so rate-limit gets real client IP
+app.set('trust proxy', 1);
+
 // CORS — one service on Railway: same origin; CORS_ORIGIN=* allows all (e.g. if you add a separate frontend later)
 const corsOrigin = process.env.CORS_ORIGIN;
 const corsOpts = corsOrigin === '*' || !corsOrigin
