@@ -1,6 +1,17 @@
 const axios = require('axios');
+const https = require('https');
 const PriceSnapshot = require('../models/PriceSnapshot');
 const MerchantSettings = require('../models/MerchantSettings');
+
+// Log each price-source failure once per process to avoid log spam (e.g. every 30s)
+const priceErrorLogged = new Set();
+
+function logPriceErrorOnce(source, metal, err) {
+  const key = `${source}:${metal}`;
+  if (priceErrorLogged.has(key)) return;
+  priceErrorLogged.add(key);
+  console.warn(`[Price] ${source} failed for ${metal} (will use fallback): ${err.message || err}`);
+}
 
 function parseMetalsLiveSpot(responseData, metal) {
   // metals.live formats can vary. Common: [["gold", 2040.12, 1700000000]]
@@ -47,7 +58,7 @@ async function fetchSpotPriceUSDPerOunce(metal) {
       }
       throw new Error('Unexpected GoldAPI response shape');
     } catch (error) {
-      console.error(`Error fetching ${metal} price from GoldAPI:`, error.message);
+      logPriceErrorOnce('GoldAPI', metal, error);
       // fall through to secondary provider
     }
   }
@@ -63,7 +74,7 @@ async function fetchSpotPriceUSDPerOunce(metal) {
         return response.data.rates[symbol];
       }
     } catch (error) {
-      console.error(`Error fetching ${metal} price from metals-api.com:`, error.message);
+      logPriceErrorOnce('metals-api.com', metal, error);
     }
   }
 
@@ -79,10 +90,10 @@ async function fetchSpotPriceUSDPerOunce(metal) {
       return response.data;
     }
   } catch (error) {
-    console.error(`Error fetching ${metal} price from freegoldprice.org:`, error.message);
+    logPriceErrorOnce('freegoldprice.org', metal, error);
   }
 
-  // Fallback: metals.live free API (best-effort, no key)
+  // Fallback: metals.live free API (best-effort; SNI fix for Railway/some hosts)
   const key = upper;
   const envKey = `${key}_PRICE_API_URL`;
   const url =
@@ -96,19 +107,24 @@ async function fetchSpotPriceUSDPerOunce(metal) {
           : null);
   if (url) {
     try {
+      const agent = new https.Agent({ servername: new URL(url).hostname });
       const response = await axios.get(url, {
-        timeout: 5000
+        timeout: 5000,
+        httpsAgent: agent
       });
       const parsed = parseMetalsLiveSpot(response.data, metal);
       if (typeof parsed === 'number') return parsed;
       if (typeof response.data === 'number') return response.data;
     } catch (error) {
-      console.error(`Error fetching ${metal} price from metals.live:`, error.message);
+      logPriceErrorOnce('metals.live', metal, error);
     }
   }
 
-  // Final fallback: Use realistic market prices (approximate as of 2025)
-  console.warn(`Using fallback price for ${metal}`);
+  // Final fallback: Use realistic market prices (approximate)
+  if (!priceErrorLogged.has(`fallback:${metal}`)) {
+    priceErrorLogged.add(`fallback:${metal}`);
+    console.warn(`[Price] Using fallback price for ${metal}. Set GOLDAPI_KEY or METALS_API_KEY for live prices.`);
+  }
   const fallbackPrices = {
     gold: 2050,    // USD per troy ounce (approximate)
     silver: 24.5,  // USD per troy ounce (approximate)
