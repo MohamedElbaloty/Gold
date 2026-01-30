@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Gold Bullion Trading Platform - Saudi Arabia" />
+    <!-- Allow Google Fonts (Inter, etc.) so CSP does not block stylesheets -->
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;">
     <title>Gold Trading Platform</title>
     <script>
       (function () {
@@ -50,7 +52,7 @@
           if (/support-portal-problems|Couldn't load support portal|Chart\.DataProblemModel.*support/.test(s)) return true;
           if (/tradingview-widget.*403|Fetch:.*support/.test(s)) return true;
           if (/Invalid environment undefined/.test(s) && /snowplow|embed-widget/.test(s)) return true;
-          if (/SES Removing unpermitted intrinsics|lockdown-install/.test(s)) return true;
+          if (/SES Removing unpermitted intrinsics|lockdown-install|unpermitted intrinsics|lockdown-install\.js/.test(s)) return true;
           return false;
         }
         var origLog = console.log, origWarn = console.warn, origError = console.error;
