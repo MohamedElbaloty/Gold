@@ -160,6 +160,31 @@ const MerchantSettings = require('./models/MerchantSettings');
 // Initialize price updater after DB connection
 mongoose.connection.once('open', async () => {
   try {
+    // Auto-seed store catalog once in production if DB is empty (safe bootstrap)
+    // Disable by setting DISABLE_AUTO_SEED_STORE=true in Railway Variables.
+    if (
+      process.env.NODE_ENV === 'production' &&
+      String(process.env.DISABLE_AUTO_SEED_STORE || '').toLowerCase() !== 'true'
+    ) {
+      try {
+        const Product = require('./models/Product');
+        const Category = require('./models/Category');
+        const [products, categories] = await Promise.all([
+          Product.countDocuments({}),
+          Category.countDocuments({})
+        ]);
+
+        if (products === 0 && categories === 0) {
+          console.log('[Seed] Store DB empty — running initial seed...');
+          const { seedStore } = require('./scripts/seedKsaStore');
+          const seeded = await seedStore({ connectIfNeeded: false });
+          console.log(`[Seed] Done. products=${seeded?.products ?? '?'} categories=${seeded?.categories ?? '?'}`);
+        }
+      } catch (e) {
+        console.warn('[Seed] Auto-seed skipped/failed:', e?.message || e);
+      }
+    }
+
     const settings = await MerchantSettings.getSettings();
     const interval = settings.priceUpdateInterval || 30;
     startPriceUpdater(interval);
