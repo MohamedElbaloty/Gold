@@ -109,5 +109,15 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      // Intercept TradingView support-portal request (403) via Service Worker when possible
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw-tv-intercept.js', { scope: '/' })
+            .then(function () {})
+            .catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>
