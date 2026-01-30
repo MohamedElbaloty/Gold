@@ -17,6 +17,7 @@ const Dashboard = () => {
     fetchData();
     const priceInterval = setInterval(fetchPrices, 30000);
     return () => clearInterval(priceInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run on accountMode only; fetchData/fetchPrices are stable
   }, [accountMode]);
 
   const fetchData = async () => {

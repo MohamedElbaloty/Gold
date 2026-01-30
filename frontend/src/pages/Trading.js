@@ -86,6 +86,7 @@ const Trading = () => {
     fetchAll();
     const interval = setInterval(fetchPrices, 15000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run on accountMode only
   }, [accountMode]);
 
   const fetchAll = async () => {

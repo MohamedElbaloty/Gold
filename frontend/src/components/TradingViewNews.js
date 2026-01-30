@@ -46,11 +46,11 @@ const TradingViewNews = ({ theme = 'dark', height = 400, className = '' }) => {
     }
 
     return () => {
-      if (!containerRef.current) return;
-      containerRef.current.querySelectorAll('script[src*="tradingview"]').forEach(s => {
+      if (!container) return;
+      container.querySelectorAll('script[src*="tradingview"]').forEach(s => {
         if (s.parentNode) s.parentNode.removeChild(s);
       });
-      const w = containerRef.current.querySelector('.tradingview-widget-container__widget');
+      const w = container.querySelector('.tradingview-widget-container__widget');
       if (w) w.innerHTML = '';
     };
   }, [theme, height, lang]);

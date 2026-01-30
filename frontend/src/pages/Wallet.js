@@ -7,7 +7,7 @@ const Wallet = () => {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [depositAmount, setDepositAmount] = useState('');
   const [depositLoading, setDepositLoading] = useState(false);
   const [depositError, setDepositError] = useState('');
@@ -27,6 +27,7 @@ const Wallet = () => {
       return;
     }
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run when page or accountMode changes
   }, [page, accountMode]);
 
   const fetchData = async () => {

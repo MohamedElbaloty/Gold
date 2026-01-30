@@ -47,8 +47,8 @@ const TradingViewChart = ({ symbol = 'OANDA:XAUUSD', theme = 'dark', height = 40
 
     return () => {
       scriptLoadedRef.current = false;
-      if (containerRef.current) {
-        const scripts = containerRef.current.querySelectorAll('script[src*="tradingview"]');
+      if (container) {
+        const scripts = container.querySelectorAll('script[src*="tradingview"]');
         scripts.forEach((s) => {
           if (s.parentNode) s.parentNode.removeChild(s);
         });

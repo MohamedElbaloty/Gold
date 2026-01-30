@@ -27,6 +27,7 @@ const Delivery = () => {
       return;
     }
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run on accountMode only
   }, [accountMode]);
 
   const fetchData = async () => {

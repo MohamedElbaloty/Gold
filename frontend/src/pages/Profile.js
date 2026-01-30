@@ -7,7 +7,7 @@ import { api } from '../lib/api';
 const Profile = () => {
   const { user } = useContext(AuthContext);
   const { lang } = useContext(UiContext);
-  const [profile, setProfile] = useState(null);
+  const [, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');

@@ -10,7 +10,8 @@ const TradingViewTicker = ({ theme = 'dark', height = 46, className = '' }) => {
   const scriptLoadedRef = useRef(false);
 
   useEffect(() => {
-    if (!containerRef.current || scriptLoadedRef.current) return;
+    const container = containerRef.current;
+    if (!container || scriptLoadedRef.current) return;
     setLoadError(false);
     scriptLoadedRef.current = true;
 
@@ -37,7 +38,7 @@ const TradingViewTicker = ({ theme = 'dark', height = 46, className = '' }) => {
         width: '100%',
         height: height
       });
-      containerRef.current.appendChild(script);
+      container.appendChild(script);
     } catch (err) {
       console.warn('TradingView Ticker script error:', err);
       setLoadError(true);
@@ -45,8 +46,8 @@ const TradingViewTicker = ({ theme = 'dark', height = 46, className = '' }) => {
 
     return () => {
       scriptLoadedRef.current = false;
-      if (containerRef.current) {
-        const scripts = containerRef.current.querySelectorAll('script[src*="tradingview"]');
+      if (container) {
+        const scripts = container.querySelectorAll('script[src*="tradingview"]');
         scripts.forEach(s => {
           if (s.parentNode) {
             s.parentNode.removeChild(s);
