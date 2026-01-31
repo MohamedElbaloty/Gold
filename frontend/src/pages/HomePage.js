@@ -1,6 +1,7 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import UiContext from '../context/UiContext';
+import { api } from '../lib/api';
 
 const GoldBar = ({ className }) => (
   <svg viewBox="0 0 120 72" className={className} fill="none" aria-hidden="true">
@@ -55,6 +56,7 @@ const SarNote = ({ className }) => (
 
 const HomePage = () => {
   const { lang } = useContext(UiContext);
+  const [floatingPhotos, setFloatingPhotos] = useState([]);
 
   const labels = useMemo(
     () => ({
@@ -85,21 +87,79 @@ const HomePage = () => {
     [lang]
   );
 
-  const floatingItems = useMemo(
-    () => [
-      { key: 'g1', type: 'gold', top: '8%', left: '-14%', size: 'w-[92px] sm:w-[120px]', dur: '34s', delay: '-10s', reverse: false, op: 0.18 },
-      { key: 's1', type: 'silver', top: '18%', left: '-22%', size: 'w-[80px] sm:w-[110px]', dur: '42s', delay: '-24s', reverse: false, op: 0.14 },
-      { key: 'r1', type: 'sar', top: '26%', left: '-20%', size: 'w-[140px] sm:w-[170px]', dur: '46s', delay: '-18s', reverse: false, op: 0.14 },
-      { key: 'g2', type: 'gold', top: '62%', left: '-18%', size: 'w-[86px] sm:w-[110px]', dur: '40s', delay: '-30s', reverse: false, op: 0.16 },
-      { key: 'r2', type: 'sar', top: '72%', left: '-28%', size: 'w-[130px] sm:w-[160px]', dur: '52s', delay: '-40s', reverse: false, op: 0.12 },
+  useEffect(() => {
+    let mounted = true;
+    async function loadPhotos() {
+      try {
+        // Pull real product images (e.g., PAMP/BTC) to use as floating background elements.
+        const queries = ['pamp', 'btc', 'bar', 'سبيكة', 'ذهب', 'gold', 'silver'];
+        const results = await Promise.all(
+          queries.map((q) => api.get('/api/store/products', { params: { limit: 12, q } }).catch(() => ({ data: {} })))
+        );
 
-      { key: 's2', type: 'silver', top: '12%', left: 'auto', right: '-26%', size: 'w-[84px] sm:w-[112px]', dur: '44s', delay: '-12s', reverse: true, op: 0.13 },
-      { key: 'g3', type: 'gold', top: '34%', left: 'auto', right: '-18%', size: 'w-[96px] sm:w-[124px]', dur: '38s', delay: '-28s', reverse: true, op: 0.16 },
-      { key: 'r3', type: 'sar', top: '54%', left: 'auto', right: '-22%', size: 'w-[138px] sm:w-[172px]', dur: '50s', delay: '-35s', reverse: true, op: 0.12 },
-      { key: 's3', type: 'silver', top: '74%', left: 'auto', right: '-20%', size: 'w-[78px] sm:w-[106px]', dur: '48s', delay: '-22s', reverse: true, op: 0.12 }
-    ],
-    []
-  );
+        const urls = [];
+        for (const r of results) {
+          const products = Array.isArray(r?.data?.products) ? r.data.products : [];
+          for (const p of products) {
+            const img = Array.isArray(p.images) && p.images[0] ? p.images[0] : null;
+            if (!img) continue;
+            if (typeof img !== 'string') continue;
+            urls.push(img);
+          }
+        }
+
+        const uniq = Array.from(new Set(urls)).slice(0, 10);
+        if (mounted) setFloatingPhotos(uniq);
+      } catch {
+        if (mounted) setFloatingPhotos([]);
+      }
+    }
+    loadPhotos();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const floatingItems = useMemo(() => {
+    // More bullion overall (user request) + optional real photos from catalog
+    const base = [
+      { key: 'g1', type: 'gold', top: '6%', left: '-18%', size: 'w-[96px] sm:w-[132px]', dur: '34s', delay: '-10s', reverse: false, op: 0.22 },
+      { key: 'g1b', type: 'gold', top: '14%', left: '-28%', size: 'w-[86px] sm:w-[120px]', dur: '44s', delay: '-22s', reverse: false, op: 0.18 },
+      { key: 's1', type: 'silver', top: '18%', left: '-22%', size: 'w-[84px] sm:w-[118px]', dur: '42s', delay: '-24s', reverse: false, op: 0.16 },
+      { key: 'g1c', type: 'gold', top: '28%', left: '-26%', size: 'w-[92px] sm:w-[126px]', dur: '48s', delay: '-30s', reverse: false, op: 0.17 },
+      { key: 'r1', type: 'sar', top: '36%', left: '-24%', size: 'w-[140px] sm:w-[175px]', dur: '56s', delay: '-18s', reverse: false, op: 0.12 },
+      { key: 's1b', type: 'silver', top: '46%', left: '-20%', size: 'w-[78px] sm:w-[110px]', dur: '40s', delay: '-14s', reverse: false, op: 0.14 },
+      { key: 'g2', type: 'gold', top: '58%', left: '-22%', size: 'w-[96px] sm:w-[132px]', dur: '46s', delay: '-28s', reverse: false, op: 0.18 },
+      { key: 'g2b', type: 'gold', top: '68%', left: '-30%', size: 'w-[86px] sm:w-[120px]', dur: '52s', delay: '-40s', reverse: false, op: 0.15 },
+      { key: 'r2', type: 'sar', top: '78%', left: '-30%', size: 'w-[130px] sm:w-[165px]', dur: '62s', delay: '-44s', reverse: false, op: 0.10 },
+
+      { key: 's2', type: 'silver', top: '8%', left: 'auto', right: '-28%', size: 'w-[88px] sm:w-[124px]', dur: '44s', delay: '-12s', reverse: true, op: 0.15 },
+      { key: 'g3', type: 'gold', top: '18%', left: 'auto', right: '-22%', size: 'w-[96px] sm:w-[134px]', dur: '38s', delay: '-28s', reverse: true, op: 0.19 },
+      { key: 'g3b', type: 'gold', top: '30%', left: 'auto', right: '-30%', size: 'w-[86px] sm:w-[120px]', dur: '50s', delay: '-36s', reverse: true, op: 0.16 },
+      { key: 's3', type: 'silver', top: '42%', left: 'auto', right: '-18%', size: 'w-[78px] sm:w-[112px]', dur: '46s', delay: '-22s', reverse: true, op: 0.13 },
+      { key: 'r3', type: 'sar', top: '52%', left: 'auto', right: '-24%', size: 'w-[138px] sm:w-[176px]', dur: '64s', delay: '-35s', reverse: true, op: 0.10 },
+      { key: 'g4', type: 'gold', top: '64%', left: 'auto', right: '-20%', size: 'w-[96px] sm:w-[132px]', dur: '54s', delay: '-48s', reverse: true, op: 0.16 },
+      { key: 's4', type: 'silver', top: '76%', left: 'auto', right: '-28%', size: 'w-[84px] sm:w-[118px]', dur: '58s', delay: '-26s', reverse: true, op: 0.12 }
+    ];
+
+    const photoSlots = [
+      { top: '10%', left: '-26%', right: undefined, size: 'w-[140px] sm:w-[180px]', dur: '60s', delay: '-20s', reverse: false, op: 0.18, rot: -10 },
+      { top: '22%', left: 'auto', right: '-26%', size: 'w-[150px] sm:w-[190px]', dur: '66s', delay: '-42s', reverse: true, op: 0.18, rot: 12 },
+      { top: '38%', left: '-20%', right: undefined, size: 'w-[145px] sm:w-[185px]', dur: '72s', delay: '-30s', reverse: false, op: 0.16, rot: 8 },
+      { top: '48%', left: 'auto', right: '-22%', size: 'w-[140px] sm:w-[180px]', dur: '70s', delay: '-50s', reverse: true, op: 0.16, rot: -7 },
+      { top: '64%', left: '-28%', right: undefined, size: 'w-[150px] sm:w-[190px]', dur: '78s', delay: '-60s', reverse: false, op: 0.14, rot: 10 },
+      { top: '74%', left: 'auto', right: '-30%', size: 'w-[140px] sm:w-[180px]', dur: '74s', delay: '-56s', reverse: true, op: 0.14, rot: -9 }
+    ];
+
+    const photos = floatingPhotos.slice(0, photoSlots.length).map((src, i) => ({
+      key: `p${i}`,
+      type: 'photo',
+      src,
+      ...photoSlots[i]
+    }));
+
+    return [...base, ...photos];
+  }, [floatingPhotos]);
 
   return (
     <section className="relative overflow-hidden">
@@ -151,6 +211,14 @@ const HomePage = () => {
                     <GoldBar className="w-full h-auto drop-shadow-[0_10px_30px_rgba(201,162,39,0.22)]" />
                   ) : it.type === 'silver' ? (
                     <SilverBar className="w-full h-auto drop-shadow-[0_10px_30px_rgba(203,213,225,0.18)]" />
+                  ) : it.type === 'photo' ? (
+                    <img
+                      src={it.src}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-auto rounded-2xl opacity-95 shadow-2xl shadow-black/10"
+                      style={{ transform: `rotate(${it.rot || 0}deg)` }}
+                    />
                   ) : (
                     <SarNote className="w-full h-auto drop-shadow-[0_10px_30px_rgba(16,185,129,0.16)]" />
                   )}
