@@ -66,6 +66,40 @@
   }
 }
 
+@keyframes floatDrift {
+  0% {
+    transform: translate3d(-10vw, 10vh, 0) rotate(-6deg);
+  }
+  100% {
+    transform: translate3d(110vw, -15vh, 0) rotate(6deg);
+  }
+}
+
+@keyframes floatDriftReverse {
+  0% {
+    transform: translate3d(110vw, 8vh, 0) rotate(8deg);
+  }
+  100% {
+    transform: translate3d(-20vw, -12vh, 0) rotate(-8deg);
+  }
+}
+
+@keyframes slowSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe-only {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

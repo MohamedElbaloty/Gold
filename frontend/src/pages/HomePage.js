@@ -2,6 +2,57 @@ import React, { useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import UiContext from '../context/UiContext';
 
+const GoldBar = ({ className }) => (
+  <svg viewBox="0 0 120 72" className={className} fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="g1" x1="0" y1="0" x2="120" y2="72" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#F2D26C" stopOpacity="0.95" />
+        <stop offset="0.55" stopColor="#C9A227" stopOpacity="0.92" />
+        <stop offset="1" stopColor="#8A6A12" stopOpacity="0.9" />
+      </linearGradient>
+    </defs>
+    <path d="M14 18h74l18 18-10 18H22L14 18z" fill="url(#g1)" opacity="0.92" />
+    <path d="M14 18h74l18 18-10 18H22L14 18z" stroke="rgba(255,255,255,0.35)" />
+    <path d="M32 36h38" stroke="rgba(0,0,0,0.18)" strokeWidth="6" strokeLinecap="round" />
+    <path d="M30 46h52" stroke="rgba(255,255,255,0.18)" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
+
+const SilverBar = ({ className }) => (
+  <svg viewBox="0 0 120 72" className={className} fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="s1" x1="0" y1="0" x2="120" y2="72" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#F5F7FA" stopOpacity="0.95" />
+        <stop offset="0.55" stopColor="#C9D1D9" stopOpacity="0.92" />
+        <stop offset="1" stopColor="#8A949E" stopOpacity="0.9" />
+      </linearGradient>
+    </defs>
+    <path d="M14 18h74l18 18-10 18H22L14 18z" fill="url(#s1)" opacity="0.85" />
+    <path d="M14 18h74l18 18-10 18H22L14 18z" stroke="rgba(255,255,255,0.35)" />
+    <path d="M34 36h32" stroke="rgba(0,0,0,0.12)" strokeWidth="6" strokeLinecap="round" />
+    <path d="M30 46h52" stroke="rgba(255,255,255,0.18)" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
+
+const SarNote = ({ className }) => (
+  <svg viewBox="0 0 160 92" className={className} fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="r1" x1="0" y1="0" x2="160" y2="92" gradientUnits="userSpaceOnUse">
+        <stop stopColor="rgba(16,185,129,0.45)" />
+        <stop offset="0.6" stopColor="rgba(16,185,129,0.25)" />
+        <stop offset="1" stopColor="rgba(201,162,39,0.18)" />
+      </linearGradient>
+    </defs>
+    <rect x="12" y="14" width="136" height="64" rx="14" fill="url(#r1)" />
+    <rect x="12" y="14" width="136" height="64" rx="14" stroke="rgba(255,255,255,0.28)" />
+    <circle cx="48" cy="46" r="16" fill="rgba(255,255,255,0.10)" />
+    <circle cx="112" cy="46" r="16" fill="rgba(255,255,255,0.08)" />
+    <path d="M22 34h116" stroke="rgba(255,255,255,0.18)" strokeWidth="4" strokeLinecap="round" />
+    <path d="M24 58h72" stroke="rgba(0,0,0,0.08)" strokeWidth="5" strokeLinecap="round" />
+    <text x="118" y="60" fontSize="18" fontWeight="800" fill="rgba(255,255,255,0.22)">SAR</text>
+  </svg>
+);
+
 const HomePage = () => {
   const { lang } = useContext(UiContext);
 
@@ -34,6 +85,22 @@ const HomePage = () => {
     [lang]
   );
 
+  const floatingItems = useMemo(
+    () => [
+      { key: 'g1', type: 'gold', top: '8%', left: '-14%', size: 'w-[92px] sm:w-[120px]', dur: '34s', delay: '-10s', reverse: false, op: 0.18 },
+      { key: 's1', type: 'silver', top: '18%', left: '-22%', size: 'w-[80px] sm:w-[110px]', dur: '42s', delay: '-24s', reverse: false, op: 0.14 },
+      { key: 'r1', type: 'sar', top: '26%', left: '-20%', size: 'w-[140px] sm:w-[170px]', dur: '46s', delay: '-18s', reverse: false, op: 0.14 },
+      { key: 'g2', type: 'gold', top: '62%', left: '-18%', size: 'w-[86px] sm:w-[110px]', dur: '40s', delay: '-30s', reverse: false, op: 0.16 },
+      { key: 'r2', type: 'sar', top: '72%', left: '-28%', size: 'w-[130px] sm:w-[160px]', dur: '52s', delay: '-40s', reverse: false, op: 0.12 },
+
+      { key: 's2', type: 'silver', top: '12%', left: 'auto', right: '-26%', size: 'w-[84px] sm:w-[112px]', dur: '44s', delay: '-12s', reverse: true, op: 0.13 },
+      { key: 'g3', type: 'gold', top: '34%', left: 'auto', right: '-18%', size: 'w-[96px] sm:w-[124px]', dur: '38s', delay: '-28s', reverse: true, op: 0.16 },
+      { key: 'r3', type: 'sar', top: '54%', left: 'auto', right: '-22%', size: 'w-[138px] sm:w-[172px]', dur: '50s', delay: '-35s', reverse: true, op: 0.12 },
+      { key: 's3', type: 'silver', top: '74%', left: 'auto', right: '-20%', size: 'w-[78px] sm:w-[106px]', dur: '48s', delay: '-22s', reverse: true, op: 0.12 }
+    ],
+    []
+  );
+
   return (
     <section className="relative overflow-hidden">
       <div
@@ -45,12 +112,53 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-transparent to-brand-gold/10 dark:from-emerald-500/10 dark:to-brand-gold/10" />
         <div className="absolute -top-24 left-1/2 h-[560px] w-[760px] -translate-x-1/2 rounded-[999px] bg-gradient-to-br from-emerald-600/18 via-emerald-600/10 to-transparent blur-3xl animate-[ksaWave_14s_ease-in-out_infinite]" />
         <div className="absolute -bottom-36 right-[-140px] h-[560px] w-[560px] rounded-full bg-gradient-to-tr from-emerald-600/16 via-brand-gold/14 to-transparent blur-3xl animate-[ksaWave_18s_ease-in-out_infinite]" />
-        <div className="absolute inset-0 opacity-[0.08] dark:opacity-[0.12] bg-[radial-gradient(circle_at_1px_1px,rgba(16,185,129,0.7)_1px,transparent_0)] [background-size:22px_22px]" />
 
-        {/* Tiny floating accents */}
-        <div className="absolute left-[8%] top-[22%] h-14 w-14 rounded-3xl border border-emerald-600/20 bg-emerald-600/10 blur-[0.2px] animate-[ksaFloat_8s_ease-in-out_infinite]" />
-        <div className="absolute right-[10%] top-[18%] h-10 w-10 rounded-3xl border border-brand-gold/25 bg-brand-gold/10 blur-[0.2px] animate-[ksaFloat_10s_ease-in-out_infinite]" />
-        <div className="absolute right-[18%] bottom-[18%] h-16 w-16 rounded-3xl border border-emerald-600/18 bg-emerald-600/8 blur-[0.2px] animate-[ksaFloat_11s_ease-in-out_infinite]" />
+        {/* Floating bullion + SAR notes (landing-style, no dots) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {floatingItems.map((it) => {
+            const style = {
+              top: it.top,
+              left: it.left === 'auto' ? undefined : it.left,
+              right: it.right,
+              opacity: it.op,
+              animationDuration: it.dur,
+              animationDelay: it.delay
+            };
+
+            const driftAnim = it.reverse ? 'floatDriftReverse' : 'floatDrift';
+
+            return (
+              <div
+                key={it.key}
+                className={`absolute ${it.size} motion-safe-only`}
+                style={{
+                  ...style,
+                  animationName: driftAnim,
+                  animationTimingFunction: 'linear',
+                  animationIterationCount: 'infinite'
+                }}
+              >
+                <div
+                  className="motion-safe-only"
+                  style={{
+                    animationName: 'slowSpin',
+                    animationDuration: '28s',
+                    animationTimingFunction: 'linear',
+                    animationIterationCount: 'infinite'
+                  }}
+                >
+                  {it.type === 'gold' ? (
+                    <GoldBar className="w-full h-auto drop-shadow-[0_10px_30px_rgba(201,162,39,0.22)]" />
+                  ) : it.type === 'silver' ? (
+                    <SilverBar className="w-full h-auto drop-shadow-[0_10px_30px_rgba(203,213,225,0.18)]" />
+                  ) : (
+                    <SarNote className="w-full h-auto drop-shadow-[0_10px_30px_rgba(16,185,129,0.16)]" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
