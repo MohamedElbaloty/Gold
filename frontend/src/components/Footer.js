@@ -10,7 +10,7 @@ const Footer = () => {
       about: lang === 'ar' ? 'عن المنصة' : 'About Saudi Gold',
       userGuide: lang === 'ar' ? 'دليل المستخدم' : 'User Guide',
       terms: lang === 'ar' ? 'الشروط والأحكام' : 'Terms and Conditions',
-      aml: lang === 'ar' ? 'AML' : 'AML',
+      governance: lang === 'ar' ? 'حوكمة الذهب (SGG)' : 'Gold Governance (SGG)',
       faq: lang === 'ar' ? 'الأسئلة الشائعة' : 'FAQ',
       connect: lang === 'ar' ? 'تواصل معنا' : 'Contact us',
       help: lang === 'ar' ? 'الدعم' : 'Help',
@@ -54,17 +54,17 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-sm text-white/70 hover:text-brand-gold transition">
+                <Link to="/about" className="text-sm text-white/70 hover:text-brand-gold transition">
                   {labels.about}
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-sm text-white/70 hover:text-brand-gold transition">
+                <Link to="/user-guide" className="text-sm text-white/70 hover:text-brand-gold transition">
                   {labels.userGuide}
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-sm text-white/70 hover:text-brand-gold transition">
+                <Link to="/terms" className="text-sm text-white/70 hover:text-brand-gold transition">
                   {labels.terms}
                 </Link>
               </li>
@@ -76,17 +76,17 @@ const Footer = () => {
             <h3 className="text-sm font-semibold mb-4 text-white">{lang === 'ar' ? 'معلومات' : 'Information'}</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-sm text-white/70 hover:text-brand-gold transition">
-                  {labels.aml}
+                <Link to="/governance" className="text-sm text-white/70 hover:text-brand-gold transition">
+                  {labels.governance}
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-sm text-white/70 hover:text-brand-gold transition">
+                <Link to="/faq" className="text-sm text-white/70 hover:text-brand-gold transition">
                   {labels.faq}
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-sm text-white/70 hover:text-brand-gold transition">
+                <Link to="/contact" className="text-sm text-white/70 hover:text-brand-gold transition">
                   {labels.connect}
                 </Link>
               </li>

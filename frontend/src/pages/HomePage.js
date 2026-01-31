@@ -37,13 +37,20 @@ const HomePage = () => {
     <section className="relative overflow-hidden">
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-b from-emerald-50/60 via-white to-emerald-50/60 dark:from-[#06140c] dark:via-brand-bg dark:to-[#06140c]"
+        className="absolute inset-0 bg-gradient-to-b from-emerald-100/70 via-white to-emerald-50/60 dark:from-[#04150c] dark:via-[#071a12] dark:to-brand-bg"
       />
       {/* Saudi-flag inspired wash + motion (subtle) */}
       <div aria-hidden="true" className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/18 via-transparent to-brand-gold/12 dark:from-emerald-500/16 dark:to-brand-gold/12" />
-        <div className="absolute -top-28 left-1/2 h-[620px] w-[820px] -translate-x-1/2 rounded-[999px] bg-gradient-to-br from-emerald-700/22 via-emerald-600/10 to-transparent blur-3xl animate-[ksaWave_14s_ease-in-out_infinite]" />
-        <div className="absolute -bottom-40 right-[-160px] h-[620px] w-[620px] rounded-full bg-gradient-to-tr from-emerald-700/18 via-brand-gold/14 to-transparent blur-3xl animate-[ksaWave_18s_ease-in-out_infinite]" />
+        {/* Green identity base wash */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-800/20 via-emerald-700/8 to-brand-gold/12 dark:from-emerald-500/18 dark:via-emerald-500/8 dark:to-brand-gold/10" />
+
+        {/* Subtle texture for depth (no images) */}
+        <div className="absolute inset-0 opacity-[0.22] dark:opacity-[0.16] [background-image:radial-gradient(ellipse_at_top,rgba(16,185,129,0.22),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(201,162,39,0.18),transparent_50%)]" />
+        <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.08] [background-image:linear-gradient(to_right,rgba(16,185,129,0.22)_1px,transparent_1px),linear-gradient(to_bottom,rgba(16,185,129,0.22)_1px,transparent_1px)] [background-size:48px_48px]" />
+
+        {/* Motion blobs */}
+        <div className="absolute -top-28 left-1/2 h-[680px] w-[900px] -translate-x-1/2 rounded-[999px] bg-gradient-to-br from-emerald-800/26 via-emerald-600/12 to-transparent blur-3xl animate-[ksaWave_14s_ease-in-out_infinite]" />
+        <div className="absolute -bottom-44 right-[-180px] h-[680px] w-[680px] rounded-full bg-gradient-to-tr from-emerald-800/18 via-brand-gold/16 to-transparent blur-3xl animate-[ksaWave_18s_ease-in-out_infinite]" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
@@ -52,6 +59,11 @@ const HomePage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-12">
                 <div className="max-w-4xl mx-auto text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-800/15 dark:border-white/10 bg-white/60 dark:bg-black/25 backdrop-blur text-xs font-semibold text-emerald-900/80 dark:text-emerald-200/80">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
+                    {lang === 'ar' ? 'هوية سعودية • تسعير شفاف • تجربة سهلة' : 'Saudi identity • Transparent pricing • Simple experience'}
+                  </div>
+
                   <h1 className="mt-4 text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white">
                     <span className="block">{labels.title}</span>
                     <span className="mt-2 block text-base sm:text-lg font-semibold text-emerald-700 dark:text-emerald-300">
@@ -64,9 +76,9 @@ const HomePage = () => {
                   </p>
 
                   {/* Feature cards (center) */}
-                  <div className="mt-7 max-w-5xl mx-auto">
+                  <div className="mt-8 max-w-5xl mx-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="rounded-2xl border border-emerald-700/15 dark:border-white/10 bg-white/70 dark:bg-black/25 backdrop-blur p-4 text-center">
+                      <div className="rounded-2xl border border-emerald-700/15 dark:border-white/10 bg-white/75 dark:bg-black/25 backdrop-blur p-4 text-center shadow-sm">
                         <div className="mx-auto h-10 w-10 rounded-2xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center">
                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" className="text-brand-gold" aria-hidden="true">
                             <path d="M4 9h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9Z" stroke="currentColor" strokeWidth="2" />
@@ -81,7 +93,7 @@ const HomePage = () => {
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-emerald-700/15 dark:border-white/10 bg-white/70 dark:bg-black/25 backdrop-blur p-4 text-center">
+                      <div className="rounded-2xl border border-emerald-700/15 dark:border-white/10 bg-white/75 dark:bg-black/25 backdrop-blur p-4 text-center shadow-sm">
                         <div className="mx-auto h-10 w-10 rounded-2xl bg-emerald-600/12 border border-emerald-600/30 flex items-center justify-center">
                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" className="text-emerald-700 dark:text-emerald-300" aria-hidden="true">
                             <path d="M4 19V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -97,7 +109,7 @@ const HomePage = () => {
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-emerald-700/15 dark:border-white/10 bg-white/70 dark:bg-black/25 backdrop-blur p-4 text-center">
+                      <div className="rounded-2xl border border-emerald-700/15 dark:border-white/10 bg-white/75 dark:bg-black/25 backdrop-blur p-4 text-center shadow-sm">
                         <div className="mx-auto h-10 w-10 rounded-2xl bg-white/60 dark:bg-white/10 border border-gray-200/60 dark:border-white/20 flex items-center justify-center">
                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" className="text-gray-800 dark:text-white/80" aria-hidden="true">
                             <path d="M12 1l3 6 6 .9-4.3 4.2 1 6-5.7-3-5.7 3 1-6L3 7.9 9 7l3-6Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
@@ -116,7 +128,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="mt-9 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="relative overflow-hidden rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-black/30 backdrop-blur p-6 sm:p-7">
                 <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-brand-gold to-transparent" />
                 <div className="flex items-start justify-between gap-4">

@@ -25,6 +25,12 @@ import PricesPage from './pages/PricesPage';
 import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
+import AboutPlatform from './pages/AboutPlatform';
+import GovernancePage from './pages/GovernancePage';
+import FaqPage from './pages/FaqPage';
+import ContactPage from './pages/ContactPage';
+import UserGuidePage from './pages/UserGuidePage';
+import TermsPage from './pages/TermsPage';
 
 function App() {
   return (
@@ -37,6 +43,12 @@ function App() {
             <main className="flex-grow">
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/about" element={<AboutPlatform />} />
+              <Route path="/governance" element={<GovernancePage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/user-guide" element={<UserGuidePage />} />
+              <Route path="/terms" element={<TermsPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/news" element={<NewsList />} />

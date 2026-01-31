@@ -143,7 +143,7 @@ Before deploying:
 ## Next Steps
 
 - Integrate Saudi payment gateways (Mada, STC Pay)
-- Add KYC/AML compliance
+- Add KYC + governance alignment (SGG)
 - Implement Arabic language support
 - Add mobile app
 - Set up WebSocket for real-time prices

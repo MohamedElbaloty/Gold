@@ -171,7 +171,7 @@ To test the system:
 - Multiple merchants
 - External custody integration
 - Saudi payment gateways (Mada, STC Pay, etc.)
-- KYC/AML compliance modules
+- KYC + governance compliance modules (SGG)
 - Advanced analytics and reporting
 - WebSocket for real-time price updates
 - Arabic language support
