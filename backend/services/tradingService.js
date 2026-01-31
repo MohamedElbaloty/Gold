@@ -80,11 +80,11 @@ async function executeBuyOrder(userId, amountGrams, isDemo = false, metalType = 
     // Update wallet (deduct SAR, keep goldBalance for legacy metrics only)
     wallet.sarBalance -= totalSAR;
     if (metalPrices.metalType === 'gold') {
-      wallet.goldBalance += amountGrams;
-      wallet.totalGoldBought += amountGrams;
+      wallet.goldBalance = Number(wallet.goldBalance || 0) + amountGrams;
+      wallet.totalGoldBought = Number(wallet.totalGoldBought || 0) + amountGrams;
     } else {
-      wallet.silverBalance += amountGrams;
-      wallet.totalSilverBought += amountGrams;
+      wallet.silverBalance = Number(wallet.silverBalance || 0) + amountGrams;
+      wallet.totalSilverBought = Number(wallet.totalSilverBought || 0) + amountGrams;
     }
     wallet.totalValueInSAR = calcTotalValueSAR(wallet, prices);
     wallet.lastUpdated = new Date();
@@ -195,12 +195,18 @@ async function executeSellOrder(userId, amountGrams, isDemo = false, metalType =
     }
 
     // Check if user has enough vaulted holdings to cover this amount (same mode)
-    let q = GoldHolding.find({
+    const holdingWhere = {
       userId: uid,
-      metalType: metalPrices.metalType,
       isDemo,
       status: { $in: ['reserved', 'delivered'] }
-    }).sort({ createdAt: 1 });
+    };
+    // Backward compatibility: old docs may not have metalType (assume gold)
+    if (metalPrices.metalType === 'gold') {
+      holdingWhere.$or = [{ metalType: 'gold' }, { metalType: { $exists: false } }];
+    } else {
+      holdingWhere.metalType = metalPrices.metalType;
+    }
+    let q = GoldHolding.find(holdingWhere).sort({ createdAt: 1 });
     q = withSession(q, session);
     const holdings = await q;
 
@@ -228,11 +234,11 @@ async function executeSellOrder(userId, amountGrams, isDemo = false, metalType =
 
     // Update wallet metrics
     if (metalPrices.metalType === 'gold') {
-      wallet.goldBalance = Math.max(0, wallet.goldBalance - amountGrams);
-      wallet.totalGoldSold += amountGrams;
+      wallet.goldBalance = Math.max(0, Number(wallet.goldBalance || 0) - amountGrams);
+      wallet.totalGoldSold = Number(wallet.totalGoldSold || 0) + amountGrams;
     } else {
-      wallet.silverBalance = Math.max(0, wallet.silverBalance - amountGrams);
-      wallet.totalSilverSold += amountGrams;
+      wallet.silverBalance = Math.max(0, Number(wallet.silverBalance || 0) - amountGrams);
+      wallet.totalSilverSold = Number(wallet.totalSilverSold || 0) + amountGrams;
     }
     wallet.sarBalance += totalSAR;
     wallet.totalValueInSAR = calcTotalValueSAR(wallet, prices);

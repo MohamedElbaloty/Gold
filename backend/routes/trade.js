@@ -133,7 +133,13 @@ router.get('/holdings', authenticate, async (req, res) => {
       isDemo,
       status: { $in: ['reserved', 'shipped', 'delivered'] }
     };
-    if (metal) where.metalType = metal;
+    if (metal) {
+      // Backward compatibility: old docs may not have metalType (assume gold)
+      where.$or =
+        metal === 'gold'
+          ? [{ metalType: 'gold' }, { metalType: { $exists: false } }]
+          : [{ metalType: metal }];
+    }
     res.json({
       holdings: await GoldHolding.find({
         ...where
