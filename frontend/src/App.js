@@ -17,8 +17,8 @@ import Footer from './components/Footer';
 import ProductDetails from './pages/store/ProductDetails';
 import CartPage from './pages/store/CartPage';
 import CheckoutPage from './pages/store/CheckoutPage';
-import StoreHome from './pages/store/StoreHome';
 import StoreCatalog from './pages/store/StoreCatalog';
+import StoreFront from './pages/store/StoreFront';
 import NewsList from './pages/NewsList';
 import NewsArticlePage from './pages/NewsArticlePage';
 import PricesPage from './pages/PricesPage';
@@ -43,7 +43,7 @@ function App() {
               <Route path="/news/:slugOrId" element={<NewsArticlePage />} />
               <Route path="/prices" element={<PricesPage />} />
 
-              <Route path="/store" element={<StoreHome />} />
+              <Route path="/store" element={<StoreFront />} />
               <Route path="/store/catalog" element={<StoreCatalog />} />
               <Route path="/store/catalog/:categorySlug" element={<StoreCatalog />} />
               <Route

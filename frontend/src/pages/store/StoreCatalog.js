@@ -82,10 +82,10 @@ const StoreCatalog = () => {
         <div>
           {effectiveCategorySlug && (
             <Link
-              to="/"
+              to="/store"
               className="text-sm text-brand-gold hover:underline mb-1 block"
             >
-              ← {lang === 'ar' ? 'الرئيسية' : 'Home'}
+              ← {lang === 'ar' ? 'المتجر' : 'Store'}
             </Link>
           )}
           <h1 className="text-2xl font-semibold text-white">{pageTitle}</h1>
