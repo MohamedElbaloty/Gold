@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { UiProvider } from './context/UiContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -17,17 +17,14 @@ import Footer from './components/Footer';
 import ProductDetails from './pages/store/ProductDetails';
 import CartPage from './pages/store/CartPage';
 import CheckoutPage from './pages/store/CheckoutPage';
+import StoreHome from './pages/store/StoreHome';
+import StoreCatalog from './pages/store/StoreCatalog';
 import NewsList from './pages/NewsList';
 import NewsArticlePage from './pages/NewsArticlePage';
 import PricesPage from './pages/PricesPage';
 import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
-
-function CatalogRedirect() {
-  const { categorySlug } = useParams();
-  return <Navigate to={categorySlug ? `/?catalog=${categorySlug}` : '/'} replace />;
-}
 
 function App() {
   return (
@@ -46,9 +43,9 @@ function App() {
               <Route path="/news/:slugOrId" element={<NewsArticlePage />} />
               <Route path="/prices" element={<PricesPage />} />
 
-              <Route path="/store" element={<Navigate to="/" replace />} />
-              <Route path="/store/catalog" element={<Navigate to="/" replace />} />
-              <Route path="/store/catalog/:categorySlug" element={<CatalogRedirect />} />
+              <Route path="/store" element={<StoreHome />} />
+              <Route path="/store/catalog" element={<StoreCatalog />} />
+              <Route path="/store/catalog/:categorySlug" element={<StoreCatalog />} />
               <Route
                 path="/store/product/:idOrSlug"
                 element={<ProductDetails />}

@@ -64,7 +64,8 @@ const Navbar = () => {
       language: lang === 'ar' ? 'English' : 'العربية',
       demo: lang === 'ar' ? 'تجريبي' : 'Demo',
       real: lang === 'ar' ? 'حقيقي' : 'Real',
-      balanceNow: lang === 'ar' ? 'رصيدك الآن' : 'Balance'
+      balanceNow: lang === 'ar' ? 'رصيدك الآن' : 'Balance',
+      platform: lang === 'ar' ? 'المنصة' : 'Platform'
     }),
     [lang]
   );
@@ -137,7 +138,7 @@ const Navbar = () => {
                 <div className="text-sm font-semibold text-gray-900 dark:text-white">
                   {lang === 'ar' ? 'ذهب السعودية' : 'Saudi Gold'}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-brand-muted">{lang === 'ar' ? 'المتجر' : 'Store'}</div>
+                <div className="text-xs text-gray-500 dark:text-brand-muted">{labels.platform}</div>
               </div>
             </Link>
 
@@ -149,6 +150,14 @@ const Navbar = () => {
                 }`}
               >
                 {labels.home}
+              </Link>
+              <Link
+                to="/store"
+                className={`px-3 py-2 rounded-xl text-sm ${
+                  isActive('/store') ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5'
+                }`}
+              >
+                {labels.store}
               </Link>
               <Link
                 to="/news"
@@ -362,6 +371,34 @@ const Navbar = () => {
           <div className="sm:hidden pb-3">
             <div className="mt-2 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-surface p-2">
               <Link
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+              >
+                {labels.home}
+              </Link>
+              <Link
+                to="/store"
+                onClick={() => setMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+              >
+                {labels.store}
+              </Link>
+              <Link
+                to="/news"
+                onClick={() => setMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+              >
+                {labels.newsTop}
+              </Link>
+              <Link
+                to="/prices"
+                onClick={() => setMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+              >
+                {labels.pricesTop}
+              </Link>
+              <Link
                 to="/cart"
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
@@ -369,28 +406,32 @@ const Navbar = () => {
                 <CartIcon className="w-5 h-5" ariaLabel={labels.cart} />
                 {labels.cart}
               </Link>
-              <Link
-                to="/trading"
-                onClick={() => setMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-              >
-                {labels.trading}
-              </Link>
-              <Link
-                to="/dashboard"
-                onClick={() => setMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-              >
-                {labels.dashboard}
-              </Link>
-              {user && (user.role === 'admin' || user.role === 'merchant') && (
-                <Link
-                  to="/admin"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-                >
-                  {labels.admin}
-                </Link>
+              {user && (
+                <>
+                  <Link
+                    to="/trading"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                  >
+                    {labels.trading}
+                  </Link>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                  >
+                    {labels.dashboard}
+                  </Link>
+                  {(user.role === 'admin' || user.role === 'merchant') && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                    >
+                      {labels.admin}
+                    </Link>
+                  )}
+                </>
               )}
 
               {user && accountMode && (
