@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import UiContext from '../../context/UiContext';
 import { api } from '../../lib/api';
 import TradingViewTicker from '../../components/TradingViewTicker';
@@ -7,15 +7,23 @@ import WidgetErrorBoundary from '../../components/WidgetErrorBoundary';
 
 const StoreFront = () => {
   const { lang, theme } = useContext(UiContext);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const q = searchParams.get('q') || '';
+  const selectedCatalogSlug = searchParams.get('catalog') || '';
 
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [newsArticles, setNewsArticles] = useState([]);
   const [newsLoading, setNewsLoading] = useState(false);
 
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+
   const [prices, setPrices] = useState(null);
   const prevSpotRef = useRef(null);
   const [spotDelta, setSpotDelta] = useState({ gold: null, silver: null, platinum: null });
+
+  const productsRef = useRef(null);
 
   const labels = useMemo(
     () => ({
@@ -28,6 +36,8 @@ const StoreFront = () => {
       all: lang === 'ar' ? 'الكل' : 'All',
       loading: lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...',
       cart: lang === 'ar' ? 'السلة' : 'Cart',
+      search: lang === 'ar' ? 'بحث' : 'Search',
+      empty: lang === 'ar' ? 'لا يوجد منتجات' : 'No products found',
       viewAllNews: lang === 'ar' ? 'عرض كل الأخبار' : 'View all news',
       marketNews: lang === 'ar' ? 'أخبار السوق' : 'Market news',
       marketNewsHint:
@@ -101,6 +111,29 @@ const StoreFront = () => {
     };
   }, []);
 
+  // Load products (same logic as /store/catalog, but embedded in /store)
+  useEffect(() => {
+    let mounted = true;
+    setProductsLoading(true);
+    const params = { limit: 24, q: q || undefined };
+    if (selectedCatalogSlug) params.categorySlug = selectedCatalogSlug;
+    api
+      .get('/api/store/products', { params })
+      .then((res) => {
+        if (!mounted) return;
+        setProducts(Array.isArray(res.data?.products) ? res.data.products : []);
+      })
+      .catch(() => {
+        if (mounted) setProducts([]);
+      })
+      .finally(() => {
+        if (mounted) setProductsLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [q, selectedCatalogSlug]);
+
   // Load news list
   useEffect(() => {
     let mounted = true;
@@ -124,6 +157,18 @@ const StoreFront = () => {
   }, [lang]);
 
   const currency = prices?.currency || 'SAR';
+
+  const selectCatalog = (slug) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (slug) next.set('catalog', slug);
+      else next.delete('catalog');
+      return next;
+    });
+    setTimeout(() => {
+      productsRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -254,33 +299,129 @@ const StoreFront = () => {
         </div>
       </div>
 
-      <div className="mt-8">
-        {/* Match the same catalog "slider/list" look used on /store/catalog */}
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-          <div className="text-sm font-semibold text-white">{labels.catalogs}</div>
-          <div className="mt-3 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
-            {categoriesLoading ? (
-              <div className="py-4 text-center text-white/60 text-sm">{labels.loading}</div>
-            ) : (
-              <>
-                <Link
-                  to="/store/catalog"
-                  className="text-left px-3 py-2 rounded-xl text-sm bg-brand-gold/20 text-brand-gold font-medium"
-                >
-                  {labels.all}
-                </Link>
-                {categories.map((c) => (
-                  <Link
-                    key={c._id}
-                    to={`/store/catalog/${c.slug}`}
-                    className="text-left px-3 py-2 rounded-xl text-sm text-white/70 hover:bg-white/5 hover:text-white"
-                  >
-                    {c.name}
-                  </Link>
-                ))}
-              </>
-            )}
+      {/* Catalog section: same layout/look as /store/catalog */}
+      <div ref={productsRef} className="mt-8">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{labels.catalogs}</h2>
           </div>
+          <div className="w-full md:w-[420px]">
+            <div className="flex gap-2">
+              <input
+                value={q}
+                onChange={(e) =>
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    const val = e.target.value;
+                    if (val) next.set('q', val);
+                    else next.delete('q');
+                    return next;
+                  })
+                }
+                className="w-full h-11 rounded-xl border border-white/10 bg-black/30 text-white px-4 text-sm placeholder:text-white/50"
+                placeholder={labels.search}
+              />
+              <Link
+                to="/cart"
+                className="h-11 px-4 rounded-xl bg-brand-gold text-black font-medium flex items-center justify-center"
+              >
+                {labels.cart}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-12 gap-4">
+          <aside className="md:col-span-3">
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <div className="text-sm font-semibold text-white">{labels.catalogs}</div>
+              <div className="mt-3 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+                {categoriesLoading ? (
+                  <div className="py-4 text-center text-white/60 text-sm">{labels.loading}</div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => selectCatalog('')}
+                      className={`text-left px-3 py-2 rounded-xl text-sm ${
+                        !selectedCatalogSlug
+                          ? 'bg-brand-gold/20 text-brand-gold font-medium'
+                          : 'text-white/70 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      {labels.all}
+                    </button>
+                    {categories.map((c) => {
+                      const isActive = selectedCatalogSlug === c.slug;
+                      return (
+                        <button
+                          key={c._id}
+                          type="button"
+                          onClick={() => selectCatalog(c.slug)}
+                          className={`text-left px-3 py-2 rounded-xl text-sm ${
+                            isActive
+                              ? 'bg-brand-gold/20 text-brand-gold font-medium'
+                              : 'text-white/70 hover:bg-white/5 hover:text-white'
+                          }`}
+                        >
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          <main className="md:col-span-9">
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+              {productsLoading ? (
+                <div className="py-10 text-center text-white/70">{labels.loading}</div>
+              ) : products.length === 0 ? (
+                <div className="py-10 text-center text-white/70">{labels.empty}</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {products.map((p) => {
+                    const img = Array.isArray(p.images) && p.images[0] ? p.images[0] : null;
+                    return (
+                      <Link
+                        key={p._id}
+                        to={`/store/product/${p.slug || p._id}`}
+                        className="group rounded-2xl border border-white/10 bg-black/20 overflow-hidden hover:border-brand-gold/60 transition"
+                      >
+                        <div className="aspect-[4/3] bg-white/5 flex items-center justify-center overflow-hidden">
+                          {img ? (
+                            <img
+                              src={img}
+                              alt={p.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="h-14 w-14 rounded-2xl bg-brand-gold/20 border border-brand-gold/40" />
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <div className="text-sm font-semibold text-white line-clamp-2">{p.title}</div>
+                          <div className="mt-1 text-xs text-white/60">
+                            {(p.categoryId && p.categoryId.name) || (lang === 'ar' ? 'منتج' : 'Product')}
+                            {p.weightGrams ? ` • ${p.weightGrams}g` : ''}
+                            {p.karat ? ` • ${p.karat}K` : ''}
+                          </div>
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="text-base font-semibold text-brand-gold">
+                              {Number(p.price?.amount || 0).toFixed(3)} {p.price?.currency || 'SAR'}
+                            </div>
+                            <div className="text-xs text-white/60">{lang === 'ar' ? 'عرض' : 'View'}</div>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </main>
         </div>
       </div>
 
