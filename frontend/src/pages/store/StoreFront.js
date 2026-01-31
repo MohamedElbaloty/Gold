@@ -2,8 +2,6 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UiContext from '../../context/UiContext';
 import { api } from '../../lib/api';
-import TradingViewTicker from '../../components/TradingViewTicker';
-import WidgetErrorBoundary from '../../components/WidgetErrorBoundary';
 
 function isGoldSilverPlatinumNews(article) {
   const text = `${article?.title || ''} ${article?.summary || ''}`.toLowerCase();
@@ -59,6 +57,44 @@ const StoreFront = () => {
     }),
     [lang]
   );
+
+  const fallbackNewsCards = useMemo(() => {
+    const now = new Date().toISOString();
+    if (lang === 'ar') {
+      return [
+        {
+          id: 'fallback-egypt-gold',
+          title: 'مستوى قياسي جديد.. أسعار الذهب في مصر اليوم الخميس',
+          summary: 'ملخص سريع لتحركات أسعار الذهب وتفاعل الأسواق، مع متابعة تأثيرات الأسعار العالمية على المنطقة.',
+          publishedAt: now,
+          sourceName: 'محتوى تجريبي'
+        },
+        {
+          id: 'fallback-libreville',
+          title: 'مأساة ليبرفيل: قصة سقوط طائرة منتخب زامبيا في المحيط ثم التتويج بكأس أمم أفريقيا بعد 19 عاماً',
+          summary: 'قصة إنسانية رياضية عن مأساة كبيرة ثم عودة تاريخية للتتويج بعد سنوات طويلة.',
+          publishedAt: now,
+          sourceName: 'محتوى تجريبي'
+        }
+      ];
+    }
+    return [
+      {
+        id: 'fallback-egypt-gold',
+        title: 'New record level: Gold prices in Egypt today (Thursday)',
+        summary: 'A quick snapshot of gold price moves and market reaction, tracking how global prices ripple across the region.',
+        publishedAt: now,
+        sourceName: 'Demo content'
+      },
+      {
+        id: 'fallback-libreville',
+        title: 'Libreville tragedy: Zambia team plane crash, then AFCON glory 19 years later',
+        summary: 'A human sports story of a national tragedy followed by a historic comeback years later.',
+        publishedAt: now,
+        sourceName: 'Demo content'
+      }
+    ];
+  }, [lang]);
 
   const categoryName = (c) => {
     if (!c) return '';
@@ -168,7 +204,7 @@ const StoreFront = () => {
         }
 
         finalArticles = Array.isArray(finalArticles) ? finalArticles.filter(isGoldSilverPlatinumNews) : [];
-        if (mounted) setNewsArticles(finalArticles.slice(0, 6));
+        if (mounted) setNewsArticles(finalArticles.length > 0 ? finalArticles.slice(0, 6) : fallbackNewsCards);
       } catch {
         if (mounted) setNewsArticles([]);
       } finally {
@@ -178,7 +214,7 @@ const StoreFront = () => {
     return () => {
       mounted = false;
     };
-  }, [lang]);
+  }, [lang, fallbackNewsCards]);
 
   const currency = prices?.currency || 'SAR';
 
@@ -201,7 +237,6 @@ const StoreFront = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Live SAR cards + TradingView ticker */}
       <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/30 backdrop-blur overflow-hidden">
         <div className="px-5 sm:px-6 py-4 border-b border-gray-200/70 dark:border-white/10 flex items-center justify-between gap-3">
           <div className="text-sm font-semibold text-gray-900 dark:text-white">{labels.pricesTitle}</div>
@@ -293,10 +328,11 @@ const StoreFront = () => {
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             <span>{labels.tvTitle}</span>
           </div>
-          <div className="px-3 sm:px-4 pb-4">
-            <WidgetErrorBoundary title={lang === 'ar' ? 'تعذر تحميل شريط TradingView' : 'TradingView ticker unavailable'}>
-              <TradingViewTicker theme={theme === 'dark' ? 'dark' : 'light'} height={46} className="w-full" />
-            </WidgetErrorBoundary>
+          <div className="px-5 sm:px-6 pb-4 text-xs text-gray-600 dark:text-white/60">
+            {lang === 'ar' ? 'لعرض الأسعار العالمية بالدولار، راجع صفحة الأسعار.' : 'For global USD view, see the Prices page.'}{' '}
+            <Link to="/prices" className="text-brand-gold hover:opacity-90">
+              {lang === 'ar' ? 'فتح صفحة الأسعار' : 'Open Prices'}
+            </Link>
           </div>
         </div>
       </div>
@@ -459,14 +495,18 @@ const StoreFront = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {newsArticles.map((a) => {
-              const isExternal = a.isExternal || a.sourceUrl;
-              const CardWrapper = isExternal ? 'a' : Link;
+              const href = a?.sourceUrl || a?.url || '';
+              const to = a?.slug || a?._id ? `/news/${a.slug || a._id}` : '';
+              const isExternal = Boolean(href) && (a.isExternal || a.sourceUrl || a.url);
+              const CardWrapper = isExternal ? 'a' : to ? Link : 'div';
               const cardProps = isExternal
-                ? { href: a.sourceUrl || a.url || '#', target: '_blank', rel: 'noopener noreferrer' }
-                : { to: `/news/${a.slug || a._id}` };
+                ? { href, target: '_blank', rel: 'noopener noreferrer' }
+                : to
+                  ? { to }
+                  : {};
               return (
                 <CardWrapper
-                  key={a._id || a.id || a.sourceUrl || a.url}
+                  key={a._id || a.id || a.sourceUrl || a.url || a.title}
                   {...cardProps}
                   className="group rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-bg/30 overflow-hidden hover:border-brand-gold/60 transition"
                 >

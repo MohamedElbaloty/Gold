@@ -52,7 +52,7 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// Get single category by slug (for catalog pages like daralsabaek.com/products/catalog/46)
+// Get single category by slug (for catalog pages)
 router.get('/categories/slug/:slug', async (req, res) => {
   try {
     const slug = String(req.params.slug || '').trim().toLowerCase();

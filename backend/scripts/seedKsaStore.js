@@ -88,7 +88,7 @@ async function seedStore({ connectIfNeeded = true } = {}) {
   await Category.updateOne({ _id: goldBars._id }, { $set: { sortOrder: 0 } });
   await Category.updateOne({ _id: silverBars._id }, { $set: { sortOrder: 1 } });
 
-  // Catalogs like daralsabaek.com - all categories with sortOrder for display (تبدأ من 2 بعد السبائك)
+  // Catalogs - all categories with sortOrder for display (تبدأ من 2 بعد السبائك)
   const catalogList = [
     { name: 'Emirates Bullion / BTC', sortOrder: 2 },
     { name: 'swiss bar', sortOrder: 3 },

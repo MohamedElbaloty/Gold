@@ -61,7 +61,7 @@ const StoreHome = () => {
         </div>
       </div>
 
-      {/* Catalogs - like daralsabaek.com */}
+      {/* Catalogs - curated store categories */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           {lang === 'ar' ? 'التصنيفات' : 'Catalogs'}

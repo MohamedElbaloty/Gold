@@ -1,6 +1,6 @@
 /**
  * News aggregator: fetches real gold/precious metals news from NewsAPI.org and Kitco RSS.
- * Same type of sources that gold/news sites like daralsabaek use - real, updated news.
+ * Uses common sources used by gold/news sites - real, updated news.
  */
 
 const axios = require('axios');

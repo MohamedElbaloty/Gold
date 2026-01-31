@@ -36,11 +36,52 @@ const NewsList = () => {
 
   const q = searchParams.get('q') || '';
 
+  const fallbackArticles = useMemo(() => {
+    const now = new Date().toISOString();
+    if (lang === 'ar') {
+      return [
+        {
+          id: 'fallback-egypt-gold',
+          title: 'مستوى قياسي جديد.. أسعار الذهب في مصر اليوم الخميس',
+          summary: 'ملخص سريع لتحركات أسعار الذهب وتفاعل الأسواق، مع متابعة تأثيرات الأسعار العالمية على المنطقة.',
+          publishedAt: now,
+          sourceName: 'محتوى تجريبي'
+        },
+        {
+          id: 'fallback-libreville',
+          title: 'مأساة ليبرفيل: قصة سقوط طائرة منتخب زامبيا في المحيط ثم التتويج بكأس أمم أفريقيا بعد 19 عاماً',
+          summary: 'قصة إنسانية رياضية عن مأساة كبيرة ثم عودة تاريخية للتتويج بعد سنوات طويلة.',
+          publishedAt: now,
+          sourceName: 'محتوى تجريبي'
+        }
+      ];
+    }
+    return [
+      {
+        id: 'fallback-egypt-gold',
+        title: 'New record level: Gold prices in Egypt today (Thursday)',
+        summary: 'A quick snapshot of gold price moves and market reaction, tracking how global prices ripple across the region.',
+        publishedAt: now,
+        sourceName: 'Demo content'
+      },
+      {
+        id: 'fallback-libreville',
+        title: 'Libreville tragedy: Zambia team plane crash, then AFCON glory 19 years later',
+        summary: 'A human sports story of a national tragedy followed by a historic comeback years later.',
+        publishedAt: now,
+        sourceName: 'Demo content'
+      }
+    ];
+  }, [lang]);
+
   const labels = useMemo(
     () => ({
       title: lang === 'ar' ? 'الأخبار' : 'News',
-      tvTitle: lang === 'ar' ? 'أخبار الذهب والفضة من TradingView' : 'Gold & Silver news from TradingView',
-      tvNote: lang === 'ar' ? 'العناوين من مصدر TradingView وقد تكون بالإنجليزية.' : 'Headlines are sourced from TradingView and may be in English.',
+      tvTitle: lang === 'ar' ? 'أخبار الذهب والفضة (مصدر خارجي)' : 'Gold & Silver news (external source)',
+      tvNote:
+        lang === 'ar'
+          ? 'العناوين من مصدر خارجي وقد تكون بالإنجليزية.'
+          : 'Headlines are sourced externally and may be in English.',
       search: lang === 'ar' ? 'بحث في الأخبار' : 'Search news',
       empty: lang === 'ar' ? 'لا توجد أخبار للذهب أو الفضة' : 'No gold/silver news yet'
     }),
@@ -77,7 +118,7 @@ const NewsList = () => {
         // Filter: show only gold + silver (exclude platinum)
         finalArticles = Array.isArray(finalArticles) ? finalArticles.filter(isGoldOrSilverNews) : [];
         if (!mounted) return;
-        setArticles(finalArticles);
+        setArticles(finalArticles.length > 0 ? finalArticles : fallbackArticles);
       } catch (e) {
         if (!mounted) return;
         setError(e?.response?.data?.message || e.message || (lang === 'ar' ? 'فشل تحميل الأخبار' : 'Failed to load news'));
@@ -89,7 +130,7 @@ const NewsList = () => {
     return () => {
       mounted = false;
     };
-  }, [lang]);
+  }, [lang, fallbackArticles]);
 
   const filteredArticles = useMemo(() => {
     if (!q.trim()) return articles;
@@ -140,14 +181,18 @@ const NewsList = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredArticles.map((a) => {
-              const isExternal = a.isExternal || a.sourceUrl;
-              const CardWrapper = isExternal ? 'a' : Link;
+              const href = a?.sourceUrl || a?.url || '';
+              const to = a?.slug || a?._id ? `/news/${a.slug || a._id}` : '';
+              const isExternal = Boolean(href) && (a.isExternal || a.sourceUrl || a.url);
+              const CardWrapper = isExternal ? 'a' : to ? Link : 'div';
               const cardProps = isExternal
-                ? { href: a.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }
-                : { to: `/news/${a.slug || a._id}` };
+                ? { href, target: '_blank', rel: 'noopener noreferrer' }
+                : to
+                  ? { to }
+                  : {};
               return (
                 <CardWrapper
-                  key={a._id}
+                  key={a._id || a.id || a.sourceUrl || a.url || a.title}
                   {...cardProps}
                   className="group rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-bg/30 overflow-hidden hover:border-brand-gold/60 transition"
                 >

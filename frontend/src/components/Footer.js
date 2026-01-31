@@ -17,10 +17,10 @@ const Footer = () => {
       allRights: lang === 'ar' ? 'جميع الحقوق محفوظة لمنصة ذهب السعودية' : 'All rights reserved to Saudi Gold',
       poweredBy: lang === 'ar' ? 'مدعوم من' : 'Powered by',
       scrollToTop: lang === 'ar' ? 'العودة للأعلى' : 'Scroll to top',
-      brandAr: 'السبائك',
-      brandEn: 'ALSABAEK',
+      brandAr: 'ذهب السعودية',
+      brandEn: 'Saudi Gold',
       brandTaglineAr: 'سبائك ومجوهرات بمعايير سعودية',
-      brandTaglineEn: 'Saudi Gold for Gold Jewelry'
+      brandTaglineEn: 'Bullion & jewellery with Saudi standards'
     }),
     [lang]
   );
@@ -38,7 +38,6 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="text-2xl font-bold text-brand-gold">{lang === 'ar' ? labels.brandAr : labels.brandEn}</div>
-              <div className="text-sm text-white/80">DAR ALSABAACK</div>
             </div>
             <div className="text-sm text-white/70">
               {lang === 'ar' ? labels.brandTaglineAr : labels.brandTaglineEn}
@@ -104,7 +103,7 @@ const Footer = () => {
             <button
               onClick={() => {
                 // Handle help button click
-                window.open('mailto:support@darsabaek.com', '_blank');
+                window.open('mailto:support@saudigold.sa', '_blank');
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-black transition"
             >
