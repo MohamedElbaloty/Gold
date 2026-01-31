@@ -89,7 +89,7 @@ const HomePage = () => {
                     {labels.buyCta}
                   </Link>
                   <Link
-                to="/store"
+                to="/store/catalog"
                     className="inline-flex items-center justify-center h-11 px-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-transparent text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50 dark:hover:bg-white/5"
                   >
                     {labels.browseCatalog}
