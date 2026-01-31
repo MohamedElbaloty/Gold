@@ -46,12 +46,12 @@ const StoreFront = () => {
       empty: lang === 'ar' ? 'لا يوجد منتجات' : 'No products found',
       more: lang === 'ar' ? 'المزيد' : 'More',
       viewAllNews: lang === 'ar' ? 'عرض كل الأخبار' : 'View all news',
-      marketNews: lang === 'ar' ? 'أخبار السوق' : 'Market news',
+      marketNews: lang === 'ar' ? 'أخبار الذهب' : 'Gold news',
       marketNewsHint:
         lang === 'ar'
           ? 'آخر الأخبار المتعلقة بالذهب والمعادن.'
           : 'Latest news related to gold and metals.',
-      pricesTitle: lang === 'ar' ? 'أسعار السوق بالريال (تحديث مباشر)' : 'Live market prices in SAR',
+      pricesTitle: lang === 'ar' ? 'أسعار الذهب بالريال (تحديث مباشر)' : 'Live gold prices in SAR',
       gold24: lang === 'ar' ? 'الذهب (24K) / جرام' : 'Gold (24k) / gram',
       silverKg: lang === 'ar' ? 'الفضة / كجم' : 'Silver / kg',
       platinumG: lang === 'ar' ? 'البلاتين / جرام' : 'Platinum / gram',
@@ -59,6 +59,11 @@ const StoreFront = () => {
     }),
     [lang]
   );
+
+  const categoryName = (c) => {
+    if (!c) return '';
+    return (lang === 'ar' ? c.nameAr || c.name : c.nameEn || c.name) || '';
+  };
 
   // Spot-only (global price) — poll frequently for near-realtime display
   useEffect(() => {
@@ -361,7 +366,7 @@ const StoreFront = () => {
                               : 'text-white/70 hover:bg-white/5 hover:text-white'
                           }`}
                         >
-                          {c.name}
+                          {categoryName(c)}
                         </button>
                       );
                     })}
@@ -402,7 +407,8 @@ const StoreFront = () => {
                           <div className="p-4">
                             <div className="text-sm font-semibold text-white line-clamp-2">{p.title}</div>
                             <div className="mt-1 text-xs text-white/60">
-                              {(p.categoryId && p.categoryId.name) || (lang === 'ar' ? 'منتج' : 'Product')}
+                              {(p.categoryId && (lang === 'ar' ? p.categoryId.nameAr || p.categoryId.name : p.categoryId.nameEn || p.categoryId.name)) ||
+                                (lang === 'ar' ? 'منتج' : 'Product')}
                               {p.weightGrams ? ` • ${p.weightGrams}g` : ''}
                               {p.karat ? ` • ${p.karat}K` : ''}
                             </div>

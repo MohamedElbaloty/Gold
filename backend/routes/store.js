@@ -70,6 +70,8 @@ router.post(
   authorize('admin', 'merchant'),
   [
     body('name').isString().trim().notEmpty(),
+    body('nameAr').optional().isString().trim(),
+    body('nameEn').optional().isString().trim(),
     body('slug').optional().isString().trim(),
     body('parentId').optional({ nullable: true }).isString(),
     body('sortOrder').optional().isInt({ min: 0 }),
@@ -80,12 +82,14 @@ router.post(
       const errors = validationResult(req);
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-      const { name, parentId = null, sortOrder = 0, isActive = true } = req.body;
-      const baseSlug = toSlug(req.body.slug || name);
+      const { name, nameAr = '', nameEn = '', parentId = null, sortOrder = 0, isActive = true } = req.body;
+      const baseSlug = toSlug(req.body.slug || nameEn || nameAr || name);
       const slug = await ensureUniqueSlug(Category, baseSlug);
 
       const category = await Category.create({
         name,
+        nameAr,
+        nameEn,
         slug,
         parentId: parentId || null,
         sortOrder,
@@ -151,7 +155,7 @@ router.get('/products', async (req, res) => {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .populate('categoryId', 'name slug')
+        .populate('categoryId', 'name nameAr nameEn slug')
         .lean(),
       Product.countDocuments(filter)
     ]);
@@ -174,7 +178,7 @@ router.get('/products/:idOrSlug', async (req, res) => {
     const { idOrSlug } = req.params;
     const isId = mongoose.isValidObjectId(idOrSlug);
     const product = await Product.findOne(isId ? { _id: idOrSlug } : { slug: idOrSlug })
-      .populate('categoryId', 'name slug')
+      .populate('categoryId', 'name nameAr nameEn slug')
       .lean();
 
     if (!product || !product.isActive) return res.status(404).json({ message: 'Product not found' });

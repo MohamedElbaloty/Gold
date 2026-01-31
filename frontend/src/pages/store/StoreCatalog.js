@@ -73,7 +73,12 @@ const StoreCatalog = () => {
     };
   }, [q, effectiveCategoryId, effectiveCategorySlug]);
 
-  const pageTitle = currentCategory ? currentCategory.name : labels.title;
+  const categoryName = (c) => {
+    if (!c) return '';
+    return (lang === 'ar' ? c.nameAr || c.name : c.nameEn || c.name) || '';
+  };
+
+  const pageTitle = currentCategory ? categoryName(currentCategory) : labels.title;
 
   /* Same look as Home: dark cards, white text, gold accents */
   return (
@@ -143,7 +148,7 @@ const StoreCatalog = () => {
                         : 'text-white/70 hover:bg-white/5 hover:text-white'
                     }`}
                   >
-                    {c.name}
+                    {categoryName(c)}
                   </Link>
                 );
               })}
@@ -181,7 +186,8 @@ const StoreCatalog = () => {
                       <div className="p-4">
                         <div className="text-sm font-semibold text-white line-clamp-2">{p.title}</div>
                         <div className="mt-1 text-xs text-white/60">
-                          {(p.categoryId && p.categoryId.name) || (lang === 'ar' ? 'منتج' : 'Product')}
+                          {(p.categoryId && (lang === 'ar' ? p.categoryId.nameAr || p.categoryId.name : p.categoryId.nameEn || p.categoryId.name)) ||
+                            (lang === 'ar' ? 'منتج' : 'Product')}
                           {p.weightGrams ? ` • ${p.weightGrams}g` : ''}
                           {p.karat ? ` • ${p.karat}K` : ''}
                         </div>

@@ -15,6 +15,11 @@ const walletSchema = new mongoose.Schema({
     default: 0,
     min: 0 // Prevent negative balances
   },
+  silverBalance: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   sarBalance: {
     type: Number,
     default: 0,
@@ -31,6 +36,14 @@ const walletSchema = new mongoose.Schema({
     default: 0
   },
   totalGoldSold: {
+    type: Number,
+    default: 0
+  },
+  totalSilverBought: {
+    type: Number,
+    default: 0
+  },
+  totalSilverSold: {
     type: Number,
     default: 0
   },

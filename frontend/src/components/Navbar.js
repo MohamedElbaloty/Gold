@@ -30,6 +30,14 @@ const ChevronDown = ({ className }) => (
   </svg>
 );
 
+// Trading icon
+const TradeIcon = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17l6-6 4 4 8-8" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 7h7v7" />
+  </svg>
+);
+
 const Navbar = () => {
   const { user, logout, accountMode, setAccountMode } = useContext(AuthContext);
   const { lang, toggleLang, theme, toggleTheme } = useContext(UiContext);
@@ -48,9 +56,9 @@ const Navbar = () => {
     () => ({
       store: lang === 'ar' ? 'المتجر' : 'Store',
       cart: lang === 'ar' ? 'السلة' : 'Cart',
-      home: lang === 'ar' ? 'Home' : 'Home',
-      newsTop: lang === 'ar' ? 'News' : 'News',
-      pricesTop: lang === 'ar' ? 'Price Calculator' : 'Price Calculator',
+      home: lang === 'ar' ? 'الرئيسية' : 'Home',
+      newsTop: lang === 'ar' ? 'الأخبار' : 'News',
+      pricesTop: lang === 'ar' ? 'حاسبة الأسعار' : 'Price Calculator',
       dashboard: lang === 'ar' ? 'لوحة التحكم' : 'Dashboard',
       trading: lang === 'ar' ? 'تداول' : 'Trading',
       wallet: lang === 'ar' ? 'المحفظة' : 'Wallet',
@@ -187,26 +195,6 @@ const Navbar = () => {
               </Link>
               {user && (
                 <>
-                  <Link
-                    to="/trading"
-                    className={`px-3 py-2 rounded-xl text-sm ${
-                      isActive('/trading')
-                        ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white'
-                        : 'text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    {labels.trading}
-                  </Link>
-                  <Link
-                    to="/dashboard"
-                    className={`px-3 py-2 rounded-xl text-sm ${
-                      isActive('/dashboard')
-                        ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white'
-                        : 'text-gray-600 dark:text-brand-muted hover:bg-gray-50 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    {labels.dashboard}
-                  </Link>
                   {(user.role === 'admin' || user.role === 'merchant') && (
                     <Link
                       to="/admin"
@@ -245,6 +233,22 @@ const Navbar = () => {
             <div className="hidden sm:flex items-center gap-3 pl-2 border-l border-gray-200 dark:border-white/10">
               {user ? (
                 <>
+                  {/* Primary CTA: Trading */}
+                  <Link
+                    to="/trading"
+                    className={`group inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold transition ${
+                      isActive('/trading')
+                        ? 'bg-gradient-to-r from-brand-gold to-brand-gold2 text-black shadow-md ring-1 ring-black/5'
+                        : 'bg-gradient-to-r from-brand-gold to-brand-gold2 text-black hover:shadow-md hover:brightness-[1.02] ring-1 ring-black/5'
+                    }`}
+                    aria-label={labels.trading}
+                    title={labels.trading}
+                  >
+                    <TradeIcon className="w-4 h-4" />
+                    <span className="hidden md:inline">{labels.trading}</span>
+                    <span className="md:hidden">{labels.trading}</span>
+                  </Link>
+
                   {/* Balance + Demo/Real switcher */}
                   {accountMode && (
                     <div className="relative" ref={balanceMenuRef}>
@@ -319,6 +323,14 @@ const Navbar = () => {
                     </button>
                     {userMenuOpen && (
                       <div className="absolute top-full right-0 mt-1 w-52 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-surface shadow-lg overflow-hidden z-50">
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                        >
+                          {labels.dashboard}
+                        </Link>
+                        <div className="border-t border-gray-100 dark:border-white/5" />
                         <Link
                           to="/profile"
                           onClick={() => setUserMenuOpen(false)}
@@ -411,8 +423,9 @@ const Navbar = () => {
                   <Link
                     to="/trading"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="mt-2 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-brand-gold to-brand-gold2 text-black ring-1 ring-black/5"
                   >
+                    <TradeIcon className="w-4 h-4" />
                     {labels.trading}
                   </Link>
                   <Link

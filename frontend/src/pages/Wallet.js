@@ -311,7 +311,10 @@ const Wallet = () => {
                     Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Gold Amount
+                    Metal
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     SAR Amount
@@ -342,6 +345,9 @@ const Wallet = () => {
                       >
                         {tx.type.toUpperCase()}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {(tx.metalType || 'gold').toUpperCase()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {tx.goldAmount.toFixed(4)} g

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { authenticate } = require('../middleware/auth');
 const Wallet = require('../models/Wallet');
 const Transaction = require('../models/Transaction');
+const WalletTransferRequest = require('../models/WalletTransferRequest');
 const { body, validationResult } = require('express-validator');
 const { withOptionalTransaction, sessionOpts, withSession } = require('../lib/transaction');
 const router = express.Router();
@@ -12,10 +13,13 @@ function fallbackWallet(isDemo) {
     userId: null,
     isDemo,
     goldBalance: 0,
+    silverBalance: 0,
     sarBalance: isDemo ? 100000 : 0,
     marginLockedSAR: 0,
     totalGoldBought: 0,
     totalGoldSold: 0,
+    totalSilverBought: 0,
+    totalSilverSold: 0,
     totalValueInSAR: 0,
     lastUpdated: new Date(),
     createdAt: new Date()
@@ -89,7 +93,7 @@ router.get('/transactions', authenticate, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)
-      .populate('orderId', 'type goldAmount pricePerGram');
+      .populate('orderId', 'type metalType goldAmount pricePerGram');
 
     const total = await Transaction.countDocuments({ userId: req.user._id });
 
@@ -123,44 +127,65 @@ router.post('/deposit', authenticate, [
       return res.status(400).json({ message: 'Deposit is not allowed on demo account' });
     }
 
-    const { amount, method, reference } = req.body;
-    const wallet = await withOptionalTransaction(async (session) => {
+    const { amount, method, reference, details } = req.body;
+    const amountNum = parseFloat(amount);
+
+    const result = await withOptionalTransaction(async (session) => {
       let w = await withSession(Wallet.findOne({ userId: req.user._id, isDemo: false }), session);
       if (!w) {
         const created = await Wallet.create([{ userId: req.user._id, isDemo: false }], sessionOpts(session));
         w = created[0];
       }
 
-      const balanceBefore = {
-        goldBalance: w.goldBalance,
-        sarBalance: w.sarBalance
-      };
+      const balanceBefore = { goldBalance: w.goldBalance, sarBalance: w.sarBalance };
 
-      w.sarBalance += parseFloat(amount);
-      w.lastUpdated = new Date();
-      await w.save(sessionOpts(session));
+      const [tx] = await Transaction.create(
+        [
+          {
+            userId: req.user._id,
+            type: 'deposit',
+            goldAmount: 0,
+            sarAmount: amountNum,
+            pricePerGram: 0,
+            status: 'pending',
+            balanceBefore,
+            balanceAfter: balanceBefore,
+            metadata: {
+              method: method || 'bank_transfer',
+              reference: reference || ''
+            }
+          }
+        ],
+        sessionOpts(session)
+      );
 
-      await Transaction.create([{
-        userId: req.user._id,
-        type: 'deposit',
-        goldAmount: 0,
-        sarAmount: parseFloat(amount),
-        pricePerGram: 0,
-        status: 'completed',
-        balanceBefore,
-        balanceAfter: {
-          goldBalance: w.goldBalance,
-          sarBalance: w.sarBalance
-        },
-        metadata: {
-          method: method || 'demo',
-          reference: reference || ''
-        }
-      }], sessionOpts(session));
+      const [reqDoc] = await WalletTransferRequest.create(
+        [
+          {
+            userId: req.user._id,
+            type: 'deposit',
+            amountSAR: amountNum,
+            method: method || 'bank_transfer',
+            reference: reference || '',
+            details: details || {},
+            status: 'pending',
+            transactionId: tx._id
+          }
+        ],
+        sessionOpts(session)
+      );
 
-      return w;
+      // Link back for easier audit
+      tx.metadata = new Map([...(tx.metadata || new Map()), ['requestId', reqDoc._id.toString()]]);
+      await tx.save(sessionOpts(session));
+
+      return { wallet: w, request: reqDoc, transaction: tx };
     });
-    res.json({ message: 'Deposit successful', wallet });
+
+    res.json({
+      message: 'Deposit request created. Please complete payment/transfer; admin will approve and balance will update.',
+      ...result
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -182,50 +207,86 @@ router.post('/withdraw', authenticate, [
       return res.status(400).json({ message: 'Withdrawal is not allowed on demo account' });
     }
 
-    const { amount, method, reference } = req.body;
-    const wallet = await withOptionalTransaction(async (session) => {
+    const { amount, method, reference, details } = req.body;
+    const amountNum = parseFloat(amount);
+
+    const result = await withOptionalTransaction(async (session) => {
       const w = await withSession(Wallet.findOne({ userId: req.user._id, isDemo: false }), session);
-      if (!w) {
-        throw new Error('Wallet not found');
-      }
+      if (!w) throw new Error('Wallet not found');
+      if (w.sarBalance < amountNum) throw new Error('Insufficient SAR balance');
 
-      const amountNum = parseFloat(amount);
-      if (w.sarBalance < amountNum) {
-        throw new Error('Insufficient SAR balance');
-      }
+      const balanceBefore = { goldBalance: w.goldBalance, sarBalance: w.sarBalance };
 
-      const balanceBefore = {
-        goldBalance: w.goldBalance,
-        sarBalance: w.sarBalance
-      };
-
-      w.sarBalance -= amountNum;
+      // Reserve funds by deducting immediately (request is still pending for payout)
+      w.sarBalance = Math.max(0, w.sarBalance - amountNum);
       w.lastUpdated = new Date();
       await w.save(sessionOpts(session));
 
-      await Transaction.create([{
-        userId: req.user._id,
-        type: 'withdrawal',
-        goldAmount: 0,
-        sarAmount: amountNum,
-        pricePerGram: 0,
-        status: 'completed',
-        balanceBefore,
-        balanceAfter: {
-          goldBalance: w.goldBalance,
-          sarBalance: w.sarBalance
-        },
-        metadata: {
-          method: method || 'demo',
-          reference: reference || ''
-        }
-      }], sessionOpts(session));
+      const [tx] = await Transaction.create(
+        [
+          {
+            userId: req.user._id,
+            type: 'withdrawal',
+            goldAmount: 0,
+            sarAmount: amountNum,
+            pricePerGram: 0,
+            status: 'pending',
+            balanceBefore,
+            balanceAfter: { goldBalance: w.goldBalance, sarBalance: w.sarBalance },
+            metadata: {
+              method: method || 'bank_transfer',
+              reference: reference || ''
+            }
+          }
+        ],
+        sessionOpts(session)
+      );
 
-      return w;
+      const [reqDoc] = await WalletTransferRequest.create(
+        [
+          {
+            userId: req.user._id,
+            type: 'withdrawal',
+            amountSAR: amountNum,
+            method: method || 'bank_transfer',
+            reference: reference || '',
+            details: details || {},
+            status: 'pending',
+            transactionId: tx._id
+          }
+        ],
+        sessionOpts(session)
+      );
+
+      tx.metadata = new Map([...(tx.metadata || new Map()), ['requestId', reqDoc._id.toString()]]);
+      await tx.save(sessionOpts(session));
+
+      return { wallet: w, request: reqDoc, transaction: tx };
     });
-    res.json({ message: 'Withdrawal successful', wallet });
+
+    res.json({
+      message: 'Withdrawal request created. Funds reserved; admin will process payout.',
+      ...result
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// List user's deposit/withdraw requests (real account)
+router.get('/transfer-requests', authenticate, async (req, res) => {
+  try {
+    const mode = (req.query.mode || req.headers['x-account-mode'] || 'real').toLowerCase();
+    if (mode === 'demo') {
+      return res.json({ requests: [] });
+    }
+    const requests = await WalletTransferRequest.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(Math.min(parseInt(req.query.limit) || 50, 100))
+      .lean();
+    return res.json({ requests });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

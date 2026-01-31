@@ -9,19 +9,54 @@ const { withOptionalTransaction, sessionOpts, withSession } = require('../lib/tr
 
 // ----- Halal physical bullion trading -----
 
+function normalizeMetalType(metalType) {
+  const m = String(metalType || 'gold').toLowerCase().trim();
+  if (m === 'gold' || m === 'xau') return 'gold';
+  if (m === 'silver' || m === 'xag') return 'silver';
+  throw new Error('Invalid metal type. Use "gold" or "silver".');
+}
+
+function getMetalPrices(prices, metalType) {
+  const m = normalizeMetalType(metalType);
+  if (m === 'gold') {
+    return {
+      metalType: 'gold',
+      buyPriceSAR: prices.buyPriceSAR,
+      sellPriceSAR: prices.sellPriceSAR,
+      spotPriceSAR: prices.spotPriceSAR
+    };
+  }
+  return {
+    metalType: 'silver',
+    buyPriceSAR: prices.silverBuyPriceSAR,
+    sellPriceSAR: prices.silverSellPriceSAR,
+    spotPriceSAR: prices.silverSpotPriceSAR
+  };
+}
+
+function calcTotalValueSAR(wallet, prices) {
+  const gb = Number(wallet.goldBalance || 0);
+  const sb = Number(wallet.silverBalance || 0);
+  const goldVal = gb * Number(prices.buyPriceSAR || 0);
+  const silverVal = sb * Number(prices.silverBuyPriceSAR || 0);
+  return goldVal + silverVal;
+}
+
 // Execute buy order: convert SAR balance into a vaulted physical gold holding
-async function executeBuyOrder(userId, goldAmount, isDemo = false) {
+async function executeBuyOrder(userId, amountGrams, isDemo = false, metalType = 'gold') {
   const uid = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
   return withOptionalTransaction(async (session) => {
     // Validate amount
     const settings = await MerchantSettings.getSettings();
-    if (goldAmount < settings.minTradeAmount || goldAmount > settings.maxTradeAmount) {
+    if (amountGrams < settings.minTradeAmount || amountGrams > settings.maxTradeAmount) {
       throw new Error(`Trade amount must be between ${settings.minTradeAmount} and ${settings.maxTradeAmount} grams`);
     }
 
     // Get current prices
     const prices = await getCurrentPrices();
-    const totalSAR = goldAmount * prices.buyPriceSAR;
+    const metalPrices = getMetalPrices(prices, metalType);
+    if (!metalPrices.buyPriceSAR) throw new Error('Price feed unavailable for requested metal');
+    const totalSAR = amountGrams * metalPrices.buyPriceSAR;
 
     // Get or create wallet (demo or real)
     let wallet = await withSession(Wallet.findOne({ userId: uid, isDemo }), session);
@@ -38,14 +73,20 @@ async function executeBuyOrder(userId, goldAmount, isDemo = false) {
     // Record balances before
     const balanceBefore = {
       goldBalance: wallet.goldBalance,
+      silverBalance: wallet.silverBalance,
       sarBalance: wallet.sarBalance
     };
 
     // Update wallet (deduct SAR, keep goldBalance for legacy metrics only)
     wallet.sarBalance -= totalSAR;
-    wallet.goldBalance += goldAmount;
-    wallet.totalGoldBought += goldAmount;
-    wallet.totalValueInSAR = wallet.goldBalance * prices.buyPriceSAR;
+    if (metalPrices.metalType === 'gold') {
+      wallet.goldBalance += amountGrams;
+      wallet.totalGoldBought += amountGrams;
+    } else {
+      wallet.silverBalance += amountGrams;
+      wallet.totalSilverBought += amountGrams;
+    }
+    wallet.totalValueInSAR = calcTotalValueSAR(wallet, prices);
     wallet.lastUpdated = new Date();
     await wallet.save(sessionOpts(session));
 
@@ -55,15 +96,16 @@ async function executeBuyOrder(userId, goldAmount, isDemo = false) {
         {
           userId: uid,
           type: 'buy',
-          goldAmount,
-          pricePerGram: prices.buyPriceSAR,
+          metalType: metalPrices.metalType,
+          goldAmount: amountGrams,
+          pricePerGram: metalPrices.buyPriceSAR,
           totalSAR,
           status: 'executed',
           executedAt: new Date(),
           priceSnapshotId: prices.snapshotId,
           executionDetails: {
-            lockedPrice: prices.buyPriceSAR,
-            actualPrice: prices.buyPriceSAR,
+            lockedPrice: metalPrices.buyPriceSAR,
+            actualPrice: metalPrices.buyPriceSAR,
             spread: prices.spread
           }
         }
@@ -77,9 +119,10 @@ async function executeBuyOrder(userId, goldAmount, isDemo = false) {
         {
           userId: uid,
           orderId: order._id,
-          goldAmount,
-          weightGrams: goldAmount,
-          purchasePricePerGram: prices.buyPriceSAR,
+          metalType: metalPrices.metalType,
+          goldAmount: amountGrams,
+          weightGrams: amountGrams,
+          purchasePricePerGram: metalPrices.buyPriceSAR,
           purchaseTotalSAR: totalSAR,
           status: 'reserved',
           storageType: 'vault',
@@ -96,19 +139,21 @@ async function executeBuyOrder(userId, goldAmount, isDemo = false) {
           userId: uid,
           type: 'buy',
           orderId: order._id,
-          goldAmount,
+          metalType: metalPrices.metalType,
+          goldAmount: amountGrams,
           sarAmount: totalSAR,
-          pricePerGram: prices.buyPriceSAR,
+          pricePerGram: metalPrices.buyPriceSAR,
           status: 'completed',
           balanceBefore,
           balanceAfter: {
             goldBalance: wallet.goldBalance,
+            silverBalance: wallet.silverBalance,
             sarBalance: wallet.sarBalance
           },
           metadata: {
             holdingId: holding[0]._id,
             mode: 'physical',
-            note: 'Saudi vaulted gold purchase'
+            note: `Saudi vaulted ${metalPrices.metalType} purchase`
           }
         }
       ],
@@ -120,6 +165,7 @@ async function executeBuyOrder(userId, goldAmount, isDemo = false) {
       holding: holding[0],
       newBalance: {
         goldBalance: wallet.goldBalance,
+        silverBalance: wallet.silverBalance,
         sarBalance: wallet.sarBalance
       }
     };
@@ -127,34 +173,38 @@ async function executeBuyOrder(userId, goldAmount, isDemo = false) {
 }
 
 // Execute sell order: sell from a specific physical holding back to SAR
-async function executeSellOrder(userId, goldAmount, isDemo = false) {
+async function executeSellOrder(userId, amountGrams, isDemo = false, metalType = 'gold') {
   return withOptionalTransaction(async (session) => {
     // Validate amount
     const settings = await MerchantSettings.getSettings();
-    if (goldAmount < settings.minTradeAmount || goldAmount > settings.maxTradeAmount) {
+    if (amountGrams < settings.minTradeAmount || amountGrams > settings.maxTradeAmount) {
       throw new Error(`Trade amount must be between ${settings.minTradeAmount} and ${settings.maxTradeAmount} grams`);
     }
 
     // Get current prices
     const prices = await getCurrentPrices();
-    const totalSAR = goldAmount * prices.sellPriceSAR;
+    const metalPrices = getMetalPrices(prices, metalType);
+    if (!metalPrices.sellPriceSAR) throw new Error('Price feed unavailable for requested metal');
+    const totalSAR = amountGrams * metalPrices.sellPriceSAR;
 
     // Get wallet (demo or real)
-    const wallet = await withSession(Wallet.findOne({ userId, isDemo }), session);
+    const uid = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
+    const wallet = await withSession(Wallet.findOne({ userId: uid, isDemo }), session);
     if (!wallet) {
       throw new Error('Wallet not found');
     }
 
     // Check if user has enough vaulted holdings to cover this amount (same mode)
     let q = GoldHolding.find({
-      userId,
+      userId: uid,
+      metalType: metalPrices.metalType,
       isDemo,
       status: { $in: ['reserved', 'delivered'] }
     }).sort({ createdAt: 1 });
     q = withSession(q, session);
     const holdings = await q;
 
-    let remaining = goldAmount;
+    let remaining = amountGrams;
     const sellingHoldings = [];
     for (const h of holdings) {
       if (remaining <= 0) break;
@@ -166,20 +216,26 @@ async function executeSellOrder(userId, goldAmount, isDemo = false) {
     }
 
     if (remaining > 0) {
-      throw new Error('Insufficient vaulted gold holdings to sell this amount');
+      throw new Error(`Insufficient vaulted ${metalPrices.metalType} holdings to sell this amount`);
     }
 
     // Record balances before
     const balanceBefore = {
       goldBalance: wallet.goldBalance,
+      silverBalance: wallet.silverBalance,
       sarBalance: wallet.sarBalance
     };
 
     // Update wallet metrics
-    wallet.goldBalance -= goldAmount;
+    if (metalPrices.metalType === 'gold') {
+      wallet.goldBalance = Math.max(0, wallet.goldBalance - amountGrams);
+      wallet.totalGoldSold += amountGrams;
+    } else {
+      wallet.silverBalance = Math.max(0, wallet.silverBalance - amountGrams);
+      wallet.totalSilverSold += amountGrams;
+    }
     wallet.sarBalance += totalSAR;
-    wallet.totalGoldSold += goldAmount;
-    wallet.totalValueInSAR = wallet.goldBalance * prices.buyPriceSAR;
+    wallet.totalValueInSAR = calcTotalValueSAR(wallet, prices);
     wallet.lastUpdated = new Date();
     await wallet.save(sessionOpts(session));
 
@@ -189,7 +245,9 @@ async function executeSellOrder(userId, goldAmount, isDemo = false) {
         holding.status = 'sold';
         holding.goldAmount = 0;
       } else {
-        holding.goldAmount -= amount;
+        const next = holding.goldAmount - amount;
+        // Guard against float noise pushing slightly below zero
+        holding.goldAmount = next <= 1e-6 ? 0 : next;
       }
       await holding.save(sessionOpts(session));
     }
@@ -198,17 +256,18 @@ async function executeSellOrder(userId, goldAmount, isDemo = false) {
     const [order] = await Order.create(
       [
         {
-          userId,
+          userId: uid,
           type: 'sell',
-          goldAmount,
-          pricePerGram: prices.sellPriceSAR,
+          metalType: metalPrices.metalType,
+          goldAmount: amountGrams,
+          pricePerGram: metalPrices.sellPriceSAR,
           totalSAR,
           status: 'executed',
           executedAt: new Date(),
           priceSnapshotId: prices.snapshotId,
           executionDetails: {
-            lockedPrice: prices.sellPriceSAR,
-            actualPrice: prices.sellPriceSAR,
+            lockedPrice: metalPrices.sellPriceSAR,
+            actualPrice: metalPrices.sellPriceSAR,
             spread: prices.spread
           }
         }
@@ -220,21 +279,23 @@ async function executeSellOrder(userId, goldAmount, isDemo = false) {
     await Transaction.create(
       [
         {
-          userId,
+          userId: uid,
           type: 'sell',
           orderId: order._id,
-          goldAmount,
+          metalType: metalPrices.metalType,
+          goldAmount: amountGrams,
           sarAmount: totalSAR,
-          pricePerGram: prices.sellPriceSAR,
+          pricePerGram: metalPrices.sellPriceSAR,
           status: 'completed',
           balanceBefore,
           balanceAfter: {
             goldBalance: wallet.goldBalance,
+            silverBalance: wallet.silverBalance,
             sarBalance: wallet.sarBalance
           },
           metadata: {
             mode: 'physical',
-            note: 'Saudi vaulted gold sell-back'
+            note: `Saudi vaulted ${metalPrices.metalType} sell-back`
           }
         }
       ],
@@ -245,6 +306,7 @@ async function executeSellOrder(userId, goldAmount, isDemo = false) {
       order,
       newBalance: {
         goldBalance: wallet.goldBalance,
+        silverBalance: wallet.silverBalance,
         sarBalance: wallet.sarBalance
       }
     };

@@ -19,11 +19,18 @@ const goldHoldingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order'
     },
+    metalType: {
+      type: String,
+      enum: ['gold', 'silver'],
+      default: 'gold',
+      index: true
+    },
     goldAmount: {
-      // total gold grams in this holding
+      // grams of metal in this holding (kept as goldAmount for backward compatibility)
       type: Number,
       required: true,
-      min: 0.01
+      // Allow 0 only for fully sold holdings (we keep the document for history)
+      min: 0
     },
     weightGrams: {
       type: Number,
@@ -62,6 +69,7 @@ const goldHoldingSchema = new mongoose.Schema(
 );
 
 goldHoldingSchema.index({ userId: 1, status: 1, createdAt: -1 });
+goldHoldingSchema.index({ userId: 1, metalType: 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('GoldHolding', goldHoldingSchema);
 

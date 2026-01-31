@@ -11,6 +11,12 @@ const orderSchema = new mongoose.Schema({
     enum: ['buy', 'sell'],
     required: true
   },
+  metalType: {
+    type: String,
+    enum: ['gold', 'silver'],
+    default: 'gold',
+    index: true
+  },
   goldAmount: {
     type: Number,
     required: true,

@@ -8,6 +8,11 @@ const StoreHome = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const categoryName = (c) => {
+    if (!c) return '';
+    return (lang === 'ar' ? c.nameAr || c.name : c.nameEn || c.name) || '';
+  };
+
   useEffect(() => {
     let mounted = true;
     api.get('/api/store/categories').then((res) => {
@@ -71,7 +76,7 @@ const StoreHome = () => {
                 to={`/store/catalog/${c.slug}`}
                 className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-surface p-4 hover:border-brand-gold/60 hover:bg-brand-gold/5 transition text-center"
               >
-                <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{c.name}</div>
+                <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{categoryName(c)}</div>
               </Link>
             ))}
           </div>

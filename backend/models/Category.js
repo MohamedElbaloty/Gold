@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const categorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
+    // Optional localized display names
+    nameAr: { type: String, trim: true, default: '' },
+    nameEn: { type: String, trim: true, default: '' },
     slug: { type: String, required: true, trim: true, unique: true, lowercase: true },
     parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
     sortOrder: { type: Number, default: 0 },

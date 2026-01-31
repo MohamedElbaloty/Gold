@@ -15,6 +15,12 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'
   },
+  metalType: {
+    type: String,
+    enum: ['gold', 'silver'],
+    default: 'gold',
+    index: true
+  },
   goldAmount: {
     type: Number,
     required: true,
@@ -37,10 +43,12 @@ const transactionSchema = new mongoose.Schema({
   // Audit fields
   balanceBefore: {
     goldBalance: Number,
+    silverBalance: Number,
     sarBalance: Number
   },
   balanceAfter: {
     goldBalance: Number,
+    silverBalance: Number,
     sarBalance: Number
   },
   metadata: {

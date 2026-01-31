@@ -16,7 +16,11 @@ const Footer = () => {
       help: lang === 'ar' ? 'مساعدة' : 'Help',
       allRights: lang === 'ar' ? 'جميع الحقوق محفوظة لذهب السعودية' : 'All rights reserved to Saudi Gold',
       poweredBy: lang === 'ar' ? 'مدعوم من' : 'Powered by',
-      scrollToTop: lang === 'ar' ? 'العودة للأعلى' : 'Scroll to top'
+      scrollToTop: lang === 'ar' ? 'العودة للأعلى' : 'Scroll to top',
+      brandAr: 'السبائك',
+      brandEn: 'ALSABAEK',
+      brandTaglineAr: 'ذهب السعودية للمجوهرات الذهبية',
+      brandTaglineEn: 'Saudi Gold for Gold Jewelry'
     }),
     [lang]
   );
@@ -33,11 +37,11 @@ const Footer = () => {
           {/* Logo and Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="text-2xl font-bold text-brand-gold">السبائك</div>
+              <div className="text-2xl font-bold text-brand-gold">{lang === 'ar' ? labels.brandAr : labels.brandEn}</div>
               <div className="text-sm text-white/80">DAR ALSABAACK</div>
             </div>
             <div className="text-sm text-white/70">
-              {lang === 'ar' ? 'ذهب السعودية للمجوهرات الذهبية' : 'Saudi Gold for Gold Jewelry'}
+              {lang === 'ar' ? labels.brandTaglineAr : labels.brandTaglineEn}
             </div>
           </div>
 
