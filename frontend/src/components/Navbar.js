@@ -272,15 +272,18 @@ const Navbar = () => {
                 aria-label="Language"
                 title="Language"
               >
-                <div className="flex flex-col leading-[1.05] text-xs font-semibold">
-                  <div className={`flex items-center gap-2 ${lang === 'en' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-white/60'}`}>
-                    <FlagUS className="h-4 w-6 rounded-sm" />
-                    <span>Eng</span>
-                  </div>
-                  <div className={`mt-0.5 flex items-center gap-2 ${lang === 'ar' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-white/60'}`}>
-                    <FlagSA className="h-4 w-6 rounded-sm" />
-                    <span>Ar</span>
-                  </div>
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  {lang === 'en' ? (
+                    <>
+                      <FlagUS className="h-4 w-6 rounded-sm" />
+                      <span>Eng</span>
+                    </>
+                  ) : (
+                    <>
+                      <FlagSA className="h-4 w-6 rounded-sm" />
+                      <span>Ar</span>
+                    </>
+                  )}
                 </div>
                 <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`} />
               </button>
