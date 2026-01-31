@@ -12,7 +12,7 @@ function isGoldSilverPlatinumNews(article) {
 }
 
 const StoreFront = () => {
-  const { lang, theme } = useContext(UiContext);
+  const { lang } = useContext(UiContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const selectedCatalogSlug = searchParams.get('catalog') || '';
