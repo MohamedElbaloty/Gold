@@ -30,6 +30,54 @@ const ChevronDown = ({ className }) => (
   </svg>
 );
 
+// Small flag icons (inline SVG)
+const FlagUS = ({ className }) => (
+  <svg viewBox="0 0 28 20" className={className} aria-hidden="true">
+    <rect width="28" height="20" rx="3" fill="#fff" />
+    <g clipPath="url(#usClip)">
+      <rect width="28" height="20" fill="#fff" />
+      <g fill="#B22234">
+        <rect y="0" width="28" height="2" />
+        <rect y="4" width="28" height="2" />
+        <rect y="8" width="28" height="2" />
+        <rect y="12" width="28" height="2" />
+        <rect y="16" width="28" height="2" />
+      </g>
+      <rect width="12" height="10" fill="#3C3B6E" />
+      <g fill="#fff" opacity="0.9">
+        <circle cx="2" cy="2" r="0.55" />
+        <circle cx="4.3" cy="2" r="0.55" />
+        <circle cx="6.6" cy="2" r="0.55" />
+        <circle cx="8.9" cy="2" r="0.55" />
+        <circle cx="11.2" cy="2" r="0.55" />
+        <circle cx="3.1" cy="4" r="0.55" />
+        <circle cx="5.4" cy="4" r="0.55" />
+        <circle cx="7.7" cy="4" r="0.55" />
+        <circle cx="10" cy="4" r="0.55" />
+        <circle cx="2" cy="6" r="0.55" />
+        <circle cx="4.3" cy="6" r="0.55" />
+        <circle cx="6.6" cy="6" r="0.55" />
+        <circle cx="8.9" cy="6" r="0.55" />
+        <circle cx="11.2" cy="6" r="0.55" />
+      </g>
+    </g>
+    <defs>
+      <clipPath id="usClip">
+        <rect width="28" height="20" rx="3" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const FlagSA = ({ className }) => (
+  <svg viewBox="0 0 28 20" className={className} aria-hidden="true">
+    <rect width="28" height="20" rx="3" fill="#0B6B3A" />
+    {/* simple sword line (no script) */}
+    <path d="M7 14h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+    <path d="M21 14l2-1v2z" fill="#fff" opacity="0.9" />
+  </svg>
+);
+
 // Trading icon
 const TradeIcon = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -40,15 +88,17 @@ const TradeIcon = ({ className }) => (
 
 const Navbar = () => {
   const { user, logout, accountMode, setAccountMode } = useContext(AuthContext);
-  const { lang, toggleLang, theme, toggleTheme } = useContext(UiContext);
+  const { lang, setLang, theme, toggleTheme } = useContext(UiContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [balanceMenuOpen, setBalanceMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [balances, setBalances] = useState({ demo: null, real: null });
   const userMenuRef = useRef(null);
   const balanceMenuRef = useRef(null);
+  const langMenuRef = useRef(null);
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
@@ -69,7 +119,7 @@ const Navbar = () => {
       profile: lang === 'ar' ? 'الملف الشخصي' : 'Profile',
       changePassword: lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password',
       dark: lang === 'ar' ? 'الوضع الليلي' : 'Dark mode',
-      language: lang === 'ar' ? 'English' : 'العربية',
+      language: lang === 'ar' ? 'Eng / Ar' : 'Eng / Ar',
       demo: lang === 'ar' ? 'تجريبي' : 'Demo',
       real: lang === 'ar' ? 'حقيقي' : 'Real',
       balanceNow: lang === 'ar' ? 'رصيدك الآن' : 'Balance',
@@ -108,6 +158,7 @@ const Navbar = () => {
     const handleClickOutside = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false);
       if (balanceMenuRef.current && !balanceMenuRef.current.contains(e.target)) setBalanceMenuOpen(false);
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target)) setLangMenuOpen(false);
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
@@ -213,13 +264,62 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleLang}
-              className="hidden sm:inline-flex items-center justify-center h-10 px-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
-            >
-              {labels.language}
-            </button>
+            <div className="hidden sm:block relative" ref={langMenuRef}>
+              <button
+                type="button"
+                onClick={() => setLangMenuOpen((o) => !o)}
+                className="inline-flex items-center gap-2 h-10 px-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                aria-label="Language"
+                title="Language"
+              >
+                <div className="flex flex-col leading-[1.05] text-xs font-semibold">
+                  <div className={`flex items-center gap-2 ${lang === 'en' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-white/60'}`}>
+                    <FlagUS className="h-4 w-6 rounded-sm" />
+                    <span>Eng</span>
+                  </div>
+                  <div className={`mt-0.5 flex items-center gap-2 ${lang === 'ar' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-white/60'}`}>
+                    <FlagSA className="h-4 w-6 rounded-sm" />
+                    <span>Ar</span>
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {langMenuOpen && (
+                <div className="absolute top-full right-0 mt-1 w-44 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-surface shadow-lg overflow-hidden z-50">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLang('en');
+                      setLangMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm transition ${
+                      lang === 'en'
+                        ? 'bg-gray-50 dark:bg-white/10 text-gray-900 dark:text-white font-semibold'
+                        : 'hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-white'
+                    }`}
+                  >
+                    <FlagUS className="h-4 w-6 rounded-sm" />
+                    <span>Eng</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLang('ar');
+                      setLangMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm transition ${
+                      lang === 'ar'
+                        ? 'bg-gray-50 dark:bg-white/10 text-gray-900 dark:text-white font-semibold'
+                        : 'hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-white'
+                    }`}
+                  >
+                    <FlagSA className="h-4 w-6 rounded-sm" />
+                    <span>Ar</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={toggleTheme}
@@ -481,10 +581,13 @@ const Navbar = () => {
 
               <button
                 type="button"
-                onClick={toggleLang}
+                onClick={() => setLang((l) => (l === 'ar' ? 'en' : 'ar'))}
                 className="w-full text-left px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
               >
-                {labels.language}
+                <span className="inline-flex items-center gap-2">
+                  {lang === 'ar' ? <FlagUS className="h-4 w-6 rounded-sm" /> : <FlagSA className="h-4 w-6 rounded-sm" />}
+                  <span>{lang === 'ar' ? 'Eng' : 'Ar'}</span>
+                </span>
               </button>
 
               {user ? (
