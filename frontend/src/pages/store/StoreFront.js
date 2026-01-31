@@ -38,11 +38,6 @@ const StoreFront = () => {
 
   const labels = useMemo(
     () => ({
-      title: lang === 'ar' ? 'متجر شراء الذهب' : 'Gold Store',
-      subtitle:
-        lang === 'ar'
-          ? 'أسعار بالريال مرتبطة بالسوق + كاتالوجات السبائك المعتمدة + أهم الأخبار.'
-          : 'Live SAR pricing + certified bullion catalogs + key market news.',
       catalogs: lang === 'ar' ? 'الكتالوجات' : 'Catalogs',
       all: lang === 'ar' ? 'الكل' : 'All',
       loading: lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...',
@@ -201,30 +196,8 @@ const StoreFront = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/30 backdrop-blur">
-        <div className="p-6 sm:p-8">
-          <div className="flex flex-col gap-3">
-            <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-white/60">
-              <span className="h-2 w-2 rounded-full bg-brand-gold" />
-              {lang === 'ar' ? 'شراء الذهب' : 'Buy gold'}
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">{labels.title}</h1>
-            <p className="max-w-3xl text-gray-600 dark:text-white/70">{labels.subtitle}</p>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link
-              to="/cart"
-              className="inline-flex items-center justify-center h-11 px-5 rounded-2xl bg-brand-gold text-black text-sm font-semibold hover:opacity-90"
-            >
-              {labels.cart}
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* Live SAR cards + TradingView ticker */}
-      <div className="mt-6 rounded-3xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/30 backdrop-blur overflow-hidden">
+      <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/30 backdrop-blur overflow-hidden">
         <div className="px-5 sm:px-6 py-4 border-b border-gray-200/70 dark:border-white/10 flex items-center justify-between gap-3">
           <div className="text-sm font-semibold text-gray-900 dark:text-white">{labels.pricesTitle}</div>
           <div className="text-xs text-gray-500 dark:text-white/50">
