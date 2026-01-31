@@ -42,6 +42,30 @@
   animation: marquee 25s linear infinite;
 }
 
+@keyframes ksaWave {
+  0% {
+    transform: translate3d(-6%, -2%, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(6%, 2%, 0) rotate(2deg);
+  }
+  100% {
+    transform: translate3d(-6%, -2%, 0) rotate(-2deg);
+  }
+}
+
+@keyframes ksaFloat {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
