@@ -18,7 +18,6 @@ const HomePage = () => {
           ? 'تسوّق السبائك والعملات الذهبية المعتمدة مباشرة من المتجر مع أسعار مرتبطة بالأسعار العالمية.'
           : 'Shop certified bullion and gold coins with pricing linked to global markets.',
       buyCta: lang === 'ar' ? 'الذهاب للمتجر' : 'Go to Store',
-      browseCatalog: lang === 'ar' ? 'استعرض الكتالوج' : 'Browse catalog',
       tradeTitle: lang === 'ar' ? 'تداول الذهب' : 'Trade Gold',
       tradeDesc:
         lang === 'ar'
@@ -87,12 +86,6 @@ const HomePage = () => {
                     className="inline-flex items-center justify-center h-11 px-6 rounded-2xl bg-brand-gold text-black text-sm font-semibold hover:opacity-90"
                   >
                     {labels.buyCta}
-                  </Link>
-                  <Link
-                to="/store/catalog"
-                    className="inline-flex items-center justify-center h-11 px-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-transparent text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50 dark:hover:bg-white/5"
-                  >
-                    {labels.browseCatalog}
                   </Link>
                 </div>
               </div>
