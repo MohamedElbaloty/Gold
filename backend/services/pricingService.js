@@ -90,25 +90,23 @@ async function fetchSpotPriceUSDPerOunce(metal) {
     return fallbackPrices[metal] || 2000;
   }
 
-  // Try freegoldprice.org (free API, no key required) — often 404; only in dev
-  if (hasAnyKey) {
-    try {
-      const symbol = metal === 'gold' ? 'XAU' : metal === 'silver' ? 'XAG' : 'XPT';
-      const url = `https://api.freegoldprice.org/v1/${symbol.toLowerCase()}/USD`;
-      const response = await axios.get(url, { timeout: 5000 });
-      if (response.data && typeof response.data.price === 'number') {
-        return response.data.price;
-      }
-      if (response.data && typeof response.data === 'number') {
-        return response.data;
-      }
-    } catch (error) {
-      logPriceErrorOnce('freegoldprice.org', metal, error);
+  // Try freegoldprice.org (free API, no key required) — dev only
+  try {
+    const symbol = metal === 'gold' ? 'XAU' : metal === 'silver' ? 'XAG' : 'XPT';
+    const url = `https://api.freegoldprice.org/v1/${symbol.toLowerCase()}/USD`;
+    const response = await axios.get(url, { timeout: 5000 });
+    if (response.data && typeof response.data.price === 'number') {
+      return response.data.price;
     }
+    if (response.data && typeof response.data === 'number') {
+      return response.data;
+    }
+  } catch (error) {
+    logPriceErrorOnce('freegoldprice.org', metal, error);
   }
 
-  // Fallback: metals.live free API (often SSL fail on Railway; skip in prod when no key)
-  if (!inProd || hasAnyKey) {
+  // Fallback: metals.live free API — dev only
+  if (!inProd) {
     const key = upper;
     const envKey = `${key}_PRICE_API_URL`;
     const url =
@@ -249,8 +247,12 @@ async function calculatePrices() {
   }
 }
 
-// In-memory cache for spot-only (1s TTL) — used for homepage "global price" second-by-second
-const SPOT_CACHE_TTL_MS = 1000;
+// In-memory cache for spot-only — used for homepage "global price"
+// Configurable to avoid hitting paid APIs too frequently in production.
+const SPOT_CACHE_TTL_MS = Math.max(
+  250,
+  parseInt(process.env.SPOT_CACHE_TTL_MS || '1000', 10) || 1000
+);
 let spotCache = { data: null, expiresAt: 0 };
 
 async function getSpotOnly() {

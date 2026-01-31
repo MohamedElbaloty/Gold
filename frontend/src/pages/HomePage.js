@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UiContext from '../context/UiContext';
 import { api } from '../lib/api';
@@ -12,6 +12,8 @@ const HomePage = () => {
   const catalogFromUrl = searchParams.get('catalog') || '';
 
   const [prices, setPrices] = useState(null);
+  const prevSpotRef = useRef(null);
+  const [spotDelta, setSpotDelta] = useState({ gold: null, silver: null, platinum: null });
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [catalogProducts, setCatalogProducts] = useState([]);
@@ -63,6 +65,24 @@ const HomePage = () => {
     const t = setInterval(fetchSpot, 1000);
     return () => { mounted = false; clearInterval(t); };
   }, []);
+
+  // Track deltas for UI (up/down) when spot updates
+  useEffect(() => {
+    const next = {
+      gold: prices?.gold?.perGram24k ?? null,
+      silver: prices?.silver?.perKg ?? null,
+      platinum: prices?.platinum?.perGram ?? null
+    };
+    const prev = prevSpotRef.current;
+    if (prev) {
+      setSpotDelta({
+        gold: next.gold != null && prev.gold != null ? next.gold - prev.gold : null,
+        silver: next.silver != null && prev.silver != null ? next.silver - prev.silver : null,
+        platinum: next.platinum != null && prev.platinum != null ? next.platinum - prev.platinum : null
+      });
+    }
+    prevSpotRef.current = next;
+  }, [prices]);
 
   // Categories — initial load + poll (with safety timeout so UI never hangs)
   useEffect(() => {
@@ -218,23 +238,90 @@ const HomePage = () => {
 
         {/* Live SAR cards (driven by /api/pricing/spot) */}
         <div className="px-4 py-3 border-b border-white/10">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-              <div className="text-xs text-white/60">{lang === 'ar' ? 'سعر الذهب (24K) / جرام' : 'Gold (24k) / gram'}</div>
-              <div className="mt-1 text-lg font-bold text-brand-gold">
-                {prices?.gold?.perGram24k != null ? Number(prices.gold.perGram24k).toFixed(3) : '--'} SAR
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="text-[10px] sm:text-xs text-white/50">
+              {lang === 'ar' ? 'بالريال السعودي (تحديث مباشر)' : 'In SAR (live)'}
+            </div>
+            <div className="text-[10px] sm:text-xs text-white/50">
+              {prices?.timestamp ? (
+                <>
+                  {lang === 'ar' ? 'آخر تحديث: ' : 'Updated: '}
+                  {new Date(prices.timestamp).toLocaleTimeString()}
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Gold */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-brand-gold/10 to-black/30 p-4 shadow-lg shadow-black/20">
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-brand-gold to-transparent" />
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-white/60">{lang === 'ar' ? 'الذهب (24K) / جرام' : 'Gold (24k) / gram'}</div>
+                <div className="h-8 w-8 rounded-2xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center">
+                  <span className="text-brand-gold text-sm font-bold">Au</span>
+                </div>
+              </div>
+              <div className="mt-2 flex items-end justify-between gap-2">
+                <div className="text-2xl font-extrabold text-brand-gold tracking-tight">
+                  {prices?.gold?.perGram24k != null ? Number(prices.gold.perGram24k).toFixed(3) : '--'}
+                  <span className="ml-1 text-xs font-semibold text-white/50">SAR</span>
+                </div>
+                {spotDelta.gold != null && spotDelta.gold !== 0 ? (
+                  <div className={`text-xs font-semibold ${spotDelta.gold > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {spotDelta.gold > 0 ? '▲' : '▼'} {Math.abs(spotDelta.gold).toFixed(3)}
+                  </div>
+                ) : (
+                  <div className="text-xs text-white/30">—</div>
+                )}
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-              <div className="text-xs text-white/60">{lang === 'ar' ? 'سعر الفضة / كجم' : 'Silver / kg'}</div>
-              <div className="mt-1 text-lg font-bold text-white">
-                {prices?.silver?.perKg != null ? Number(prices.silver.perKg).toFixed(2) : '--'} SAR
+
+            {/* Silver */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-black/30 p-4 shadow-lg shadow-black/20">
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-white/60">{lang === 'ar' ? 'الفضة / كجم' : 'Silver / kg'}</div>
+                <div className="h-8 w-8 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
+                  <span className="text-white/80 text-sm font-bold">Ag</span>
+                </div>
+              </div>
+              <div className="mt-2 flex items-end justify-between gap-2">
+                <div className="text-2xl font-extrabold text-white tracking-tight">
+                  {prices?.silver?.perKg != null ? Number(prices.silver.perKg).toFixed(2) : '--'}
+                  <span className="ml-1 text-xs font-semibold text-white/50">SAR</span>
+                </div>
+                {spotDelta.silver != null && spotDelta.silver !== 0 ? (
+                  <div className={`text-xs font-semibold ${spotDelta.silver > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {spotDelta.silver > 0 ? '▲' : '▼'} {Math.abs(spotDelta.silver).toFixed(2)}
+                  </div>
+                ) : (
+                  <div className="text-xs text-white/30">—</div>
+                )}
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-              <div className="text-xs text-white/60">{lang === 'ar' ? 'سعر البلاتين / جرام' : 'Platinum / gram'}</div>
-              <div className="mt-1 text-lg font-bold text-sky-300">
-                {prices?.platinum?.perGram != null ? Number(prices.platinum.perGram).toFixed(3) : '--'} SAR
+
+            {/* Platinum */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-sky-400/10 to-black/30 p-4 shadow-lg shadow-black/20">
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-white/60">{lang === 'ar' ? 'البلاتين / جرام' : 'Platinum / gram'}</div>
+                <div className="h-8 w-8 rounded-2xl bg-sky-400/10 border border-sky-300/20 flex items-center justify-center">
+                  <span className="text-sky-200 text-sm font-bold">Pt</span>
+                </div>
+              </div>
+              <div className="mt-2 flex items-end justify-between gap-2">
+                <div className="text-2xl font-extrabold text-sky-200 tracking-tight">
+                  {prices?.platinum?.perGram != null ? Number(prices.platinum.perGram).toFixed(3) : '--'}
+                  <span className="ml-1 text-xs font-semibold text-white/50">SAR</span>
+                </div>
+                {spotDelta.platinum != null && spotDelta.platinum !== 0 ? (
+                  <div className={`text-xs font-semibold ${spotDelta.platinum > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {spotDelta.platinum > 0 ? '▲' : '▼'} {Math.abs(spotDelta.platinum).toFixed(3)}
+                  </div>
+                ) : (
+                  <div className="text-xs text-white/30">—</div>
+                )}
               </div>
             </div>
           </div>
