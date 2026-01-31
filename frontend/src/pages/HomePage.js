@@ -48,7 +48,7 @@ const HomePage = () => {
     [lang]
   );
 
-  // Spot-only (global price) — poll periodically for homepage display
+  // Spot-only (global price) — poll frequently for near-realtime display
   useEffect(() => {
     let mounted = true;
     async function fetchSpot() {
@@ -60,7 +60,7 @@ const HomePage = () => {
       }
     }
     fetchSpot();
-    const t = setInterval(fetchSpot, 30000);
+    const t = setInterval(fetchSpot, 1000);
     return () => { mounted = false; clearInterval(t); };
   }, []);
 
@@ -214,18 +214,32 @@ const HomePage = () => {
               {lang === 'ar' ? 'أسعار عالمية بالدولار' : 'Live global prices in USD'}
             </span>
           </div>
-          {prices && (
-            <span className="text-[10px] sm:text-xs text-white/60">
-              {lang === 'ar'
-                ? `تقريباً بالريال: ذهب ≈ ${Number(prices.gold?.perGram24k || 0).toFixed(3)} ${currency}/جم، فضة ≈ ${Number(
-                    prices.silver?.perKg || 0
-                  ).toFixed(2)} ${currency}/كجم، بلاتين ≈ ${Number(prices.platinum?.perGram || 0).toFixed(3)} ${currency}/جم`
-                : `Approx in SAR: Gold ≈ ${Number(prices.gold?.perGram24k || 0).toFixed(3)} ${currency}/g, Silver ≈ ${Number(
-                    prices.silver?.perKg || 0
-                  ).toFixed(2)} ${currency}/kg, Platinum ≈ ${Number(prices.platinum?.perGram || 0).toFixed(3)} ${currency}/g`}
-            </span>
-          )}
         </div>
+
+        {/* Live SAR cards (driven by /api/pricing/spot) */}
+        <div className="px-4 py-3 border-b border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+              <div className="text-xs text-white/60">{lang === 'ar' ? 'سعر الذهب (24K) / جرام' : 'Gold (24k) / gram'}</div>
+              <div className="mt-1 text-lg font-bold text-brand-gold">
+                {prices?.gold?.perGram24k != null ? Number(prices.gold.perGram24k).toFixed(3) : '--'} SAR
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+              <div className="text-xs text-white/60">{lang === 'ar' ? 'سعر الفضة / كجم' : 'Silver / kg'}</div>
+              <div className="mt-1 text-lg font-bold text-white">
+                {prices?.silver?.perKg != null ? Number(prices.silver.perKg).toFixed(2) : '--'} SAR
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+              <div className="text-xs text-white/60">{lang === 'ar' ? 'سعر البلاتين / جرام' : 'Platinum / gram'}</div>
+              <div className="mt-1 text-lg font-bold text-sky-300">
+                {prices?.platinum?.perGram != null ? Number(prices.platinum.perGram).toFixed(3) : '--'} SAR
+              </div>
+            </div>
+          </div>
+        </div>
+
         <WidgetErrorBoundary title={lang === 'ar' ? 'تعذر تحميل شريط TradingView' : 'TradingView ticker unavailable'}>
           <TradingViewTicker theme={theme === 'dark' ? 'dark' : 'light'} height={46} className="w-full" />
         </WidgetErrorBoundary>
