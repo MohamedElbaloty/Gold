@@ -54,6 +54,41 @@
   }
 }
 
+@keyframes flagFlutter {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-1.2deg);
+    filter: saturate(1) contrast(1);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0) rotate(1.2deg);
+    filter: saturate(1.05) contrast(1.03);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-1.2deg);
+    filter: saturate(1) contrast(1);
+  }
+}
+
+@keyframes shineSweep {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.35;
+  }
+  55% {
+    opacity: 0.35;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(120%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
 @keyframes ksaFloat {
   0% {
     transform: translate3d(0, 0, 0);
