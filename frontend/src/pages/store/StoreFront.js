@@ -27,7 +27,6 @@ const StoreFront = () => {
       catalogs: lang === 'ar' ? 'الكتالوجات' : 'Catalogs',
       all: lang === 'ar' ? 'الكل' : 'All',
       loading: lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...',
-      emptyCats: lang === 'ar' ? 'لا توجد كاتالوجات' : 'No catalogs',
       cart: lang === 'ar' ? 'السلة' : 'Cart',
       viewAllNews: lang === 'ar' ? 'عرض كل الأخبار' : 'View all news',
       marketNews: lang === 'ar' ? 'أخبار السوق' : 'Market news',
@@ -256,28 +255,33 @@ const StoreFront = () => {
       </div>
 
       <div className="mt-8">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{labels.catalogs}</h2>
-        </div>
-
-        {categoriesLoading ? (
-          <div className="py-6 text-center text-gray-500 dark:text-white/60">{labels.loading}</div>
-        ) : (
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {categories.length === 0 ? (
-              <div className="col-span-full py-8 text-center text-gray-600 dark:text-white/60">{labels.emptyCats}</div>
-            ) : null}
-            {categories.map((c) => (
-              <Link
-                key={c._id}
-                to={`/store/catalog/${c.slug}`}
-                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 p-4 hover:border-brand-gold/60 hover:bg-brand-gold/5 transition text-center"
-              >
-                <div className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">{c.name}</div>
-              </Link>
-            ))}
+        {/* Match the same catalog "slider/list" look used on /store/catalog */}
+        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+          <div className="text-sm font-semibold text-white">{labels.catalogs}</div>
+          <div className="mt-3 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+            {categoriesLoading ? (
+              <div className="py-4 text-center text-white/60 text-sm">{labels.loading}</div>
+            ) : (
+              <>
+                <Link
+                  to="/store/catalog"
+                  className="text-left px-3 py-2 rounded-xl text-sm bg-brand-gold/20 text-brand-gold font-medium"
+                >
+                  {labels.all}
+                </Link>
+                {categories.map((c) => (
+                  <Link
+                    key={c._id}
+                    to={`/store/catalog/${c.slug}`}
+                    className="text-left px-3 py-2 rounded-xl text-sm text-white/70 hover:bg-white/5 hover:text-white"
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <div className="mt-10 rounded-3xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/30 backdrop-blur p-4 sm:p-6">
