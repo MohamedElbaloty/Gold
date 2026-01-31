@@ -5,6 +5,14 @@ import { api } from '../../lib/api';
 import TradingViewTicker from '../../components/TradingViewTicker';
 import WidgetErrorBoundary from '../../components/WidgetErrorBoundary';
 
+function isGoldSilverPlatinumNews(article) {
+  const text = `${article?.title || ''} ${article?.summary || ''}`.toLowerCase();
+  const hasGold = text.includes('gold') || text.includes('xau') || text.includes('ذهب') || text.includes('الذهب');
+  const hasSilver = text.includes('silver') || text.includes('xag') || text.includes('فضة') || text.includes('الفضة');
+  const hasPlatinum = text.includes('platinum') || text.includes('xpt') || text.includes('بلاتين') || text.includes('البلاتين');
+  return hasGold || hasSilver || hasPlatinum;
+}
+
 const StoreFront = () => {
   const { lang, theme } = useContext(UiContext);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +32,9 @@ const StoreFront = () => {
   const [spotDelta, setSpotDelta] = useState({ gold: null, silver: null, platinum: null });
 
   const productsRef = useRef(null);
+  const CATALOG_INITIAL_LIMIT = 6;
+  const CATALOG_MORE_STEP = 6;
+  const [catalogDisplayLimit, setCatalogDisplayLimit] = useState(CATALOG_INITIAL_LIMIT);
 
   const labels = useMemo(
     () => ({
@@ -38,6 +49,7 @@ const StoreFront = () => {
       cart: lang === 'ar' ? 'السلة' : 'Cart',
       search: lang === 'ar' ? 'بحث' : 'Search',
       empty: lang === 'ar' ? 'لا يوجد منتجات' : 'No products found',
+      more: lang === 'ar' ? 'المزيد' : 'More',
       viewAllNews: lang === 'ar' ? 'عرض كل الأخبار' : 'View all news',
       marketNews: lang === 'ar' ? 'أخبار السوق' : 'Market news',
       marketNewsHint:
@@ -48,7 +60,7 @@ const StoreFront = () => {
       gold24: lang === 'ar' ? 'الذهب (24K) / جرام' : 'Gold (24k) / gram',
       silverKg: lang === 'ar' ? 'الفضة / كجم' : 'Silver / kg',
       platinumG: lang === 'ar' ? 'البلاتين / جرام' : 'Platinum / gram',
-      tvTitle: lang === 'ar' ? 'شريط TradingView (عالمي بالدولار)' : 'TradingView ticker (USD)'
+      tvTitle: lang === 'ar' ? 'السعر العالمي بالدولار' : 'Global price in USD'
     }),
     [lang]
   );
@@ -138,25 +150,42 @@ const StoreFront = () => {
   useEffect(() => {
     let mounted = true;
     setNewsLoading(true);
-    api
-      .get('/api/news/feed', { params: { lang, limit: 6 } })
-      .then((res) => {
-        if (!mounted) return;
-        const data = res.data?.articles || res.data || [];
-        setNewsArticles(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
+    (async () => {
+      try {
+        let finalArticles = [];
+        try {
+          const res = await api.get('/api/news/feed', { params: { lang, limit: 24 } });
+          const articlesData = res.data?.articles || res.data || [];
+          finalArticles = Array.isArray(articlesData) ? articlesData : [];
+        } catch (_) {}
+
+        if (finalArticles.length === 0) {
+          try {
+            const resInternal = await api.get('/api/news', { params: { lang, limit: 24 } });
+            const internalData = resInternal.data?.articles || resInternal.data || [];
+            if (Array.isArray(internalData) && internalData.length > 0) finalArticles = internalData;
+          } catch (_) {}
+        }
+
+        finalArticles = Array.isArray(finalArticles) ? finalArticles.filter(isGoldSilverPlatinumNews) : [];
+        if (mounted) setNewsArticles(finalArticles.slice(0, 6));
+      } catch {
         if (mounted) setNewsArticles([]);
-      })
-      .finally(() => {
+      } finally {
         if (mounted) setNewsLoading(false);
-      });
+      }
+    })();
     return () => {
       mounted = false;
     };
   }, [lang]);
 
   const currency = prices?.currency || 'SAR';
+
+  // Reset catalog display limit when filters change
+  useEffect(() => {
+    setCatalogDisplayLimit(CATALOG_INITIAL_LIMIT);
+  }, [q, selectedCatalogSlug]);
 
   const selectCatalog = (slug) => {
     setSearchParams((prev) => {
@@ -189,12 +218,6 @@ const StoreFront = () => {
               className="inline-flex items-center justify-center h-11 px-5 rounded-2xl bg-brand-gold text-black text-sm font-semibold hover:opacity-90"
             >
               {labels.cart}
-            </Link>
-            <Link
-              to="/store/catalog"
-              className="inline-flex items-center justify-center h-11 px-5 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-transparent text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50 dark:hover:bg-white/5"
-            >
-              {lang === 'ar' ? 'استعرض الكتالوج' : 'Browse catalog'}
             </Link>
           </div>
         </div>
@@ -288,8 +311,9 @@ const StoreFront = () => {
         </div>
 
         <div className="border-t border-gray-200/70 dark:border-white/10">
-          <div className="px-5 sm:px-6 py-3 text-xs font-semibold text-gray-700/70 dark:text-white/60">
-            {labels.tvTitle}
+          <div className="px-5 sm:px-6 py-3 flex items-center gap-2 text-xs font-semibold text-gray-700/70 dark:text-white/60">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span>{labels.tvTitle}</span>
           </div>
           <div className="px-3 sm:px-4 pb-4">
             <WidgetErrorBoundary title={lang === 'ar' ? 'تعذر تحميل شريط TradingView' : 'TradingView ticker unavailable'}>
@@ -381,44 +405,57 @@ const StoreFront = () => {
               ) : products.length === 0 ? (
                 <div className="py-10 text-center text-white/70">{labels.empty}</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {products.map((p) => {
-                    const img = Array.isArray(p.images) && p.images[0] ? p.images[0] : null;
-                    return (
-                      <Link
-                        key={p._id}
-                        to={`/store/product/${p.slug || p._id}`}
-                        className="group rounded-2xl border border-white/10 bg-black/20 overflow-hidden hover:border-brand-gold/60 transition"
-                      >
-                        <div className="aspect-[4/3] bg-white/5 flex items-center justify-center overflow-hidden">
-                          {img ? (
-                            <img
-                              src={img}
-                              alt={p.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="h-14 w-14 rounded-2xl bg-brand-gold/20 border border-brand-gold/40" />
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <div className="text-sm font-semibold text-white line-clamp-2">{p.title}</div>
-                          <div className="mt-1 text-xs text-white/60">
-                            {(p.categoryId && p.categoryId.name) || (lang === 'ar' ? 'منتج' : 'Product')}
-                            {p.weightGrams ? ` • ${p.weightGrams}g` : ''}
-                            {p.karat ? ` • ${p.karat}K` : ''}
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {products.slice(0, catalogDisplayLimit).map((p) => {
+                      const img = Array.isArray(p.images) && p.images[0] ? p.images[0] : null;
+                      return (
+                        <Link
+                          key={p._id}
+                          to={`/store/product/${p.slug || p._id}`}
+                          className="group rounded-2xl border border-white/10 bg-black/20 overflow-hidden hover:border-brand-gold/60 transition"
+                        >
+                          <div className="aspect-[4/3] bg-white/5 flex items-center justify-center overflow-hidden">
+                            {img ? (
+                              <img
+                                src={img}
+                                alt={p.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="h-14 w-14 rounded-2xl bg-brand-gold/20 border border-brand-gold/40" />
+                            )}
                           </div>
-                          <div className="mt-3 flex items-center justify-between">
-                            <div className="text-base font-semibold text-brand-gold">
-                              {Number(p.price?.amount || 0).toFixed(3)} {p.price?.currency || 'SAR'}
+                          <div className="p-4">
+                            <div className="text-sm font-semibold text-white line-clamp-2">{p.title}</div>
+                            <div className="mt-1 text-xs text-white/60">
+                              {(p.categoryId && p.categoryId.name) || (lang === 'ar' ? 'منتج' : 'Product')}
+                              {p.weightGrams ? ` • ${p.weightGrams}g` : ''}
+                              {p.karat ? ` • ${p.karat}K` : ''}
                             </div>
-                            <div className="text-xs text-white/60">{lang === 'ar' ? 'عرض' : 'View'}</div>
+                            <div className="mt-3 flex items-center justify-between">
+                              <div className="text-base font-semibold text-brand-gold">
+                                {Number(p.price?.amount || 0).toFixed(3)} {p.price?.currency || 'SAR'}
+                              </div>
+                              <div className="text-xs text-white/60">{lang === 'ar' ? 'عرض' : 'View'}</div>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                  {products.length > catalogDisplayLimit && (
+                    <div className="mt-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setCatalogDisplayLimit((prev) => prev + CATALOG_MORE_STEP)}
+                        className="px-6 py-2.5 rounded-xl bg-brand-gold/20 text-brand-gold text-sm font-medium border border-brand-gold/40 hover:bg-brand-gold/30 transition"
+                      >
+                        {labels.more}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </main>
@@ -441,25 +478,45 @@ const StoreFront = () => {
         ) : newsArticles.length === 0 ? (
           <div className="py-6 text-center text-gray-600 dark:text-white/70">{lang === 'ar' ? 'لا توجد أخبار حالياً.' : 'No news at the moment.'}</div>
         ) : (
-          <ul className="space-y-3">
-            {newsArticles.slice(0, 6).map((a, i) => (
-              <li key={a.id || a._id || i}>
-                <a
-                  href={a.sourceUrl || a.url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block rounded-2xl p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-900 dark:text-white transition"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {newsArticles.map((a) => {
+              const isExternal = a.isExternal || a.sourceUrl;
+              const CardWrapper = isExternal ? 'a' : Link;
+              const cardProps = isExternal
+                ? { href: a.sourceUrl || a.url || '#', target: '_blank', rel: 'noopener noreferrer' }
+                : { to: `/news/${a.slug || a._id}` };
+              return (
+                <CardWrapper
+                  key={a._id || a.id || a.sourceUrl || a.url}
+                  {...cardProps}
+                  className="group rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-bg/30 overflow-hidden hover:border-brand-gold/60 transition"
                 >
-                  <div className="text-sm font-medium line-clamp-2">{a.title || a.headline || ''}</div>
-                  {a.publishedAt ? (
-                    <div className="mt-1 text-xs text-gray-600 dark:text-white/60">
-                      {new Date(a.publishedAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <div className="aspect-[16/9] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-white/5 dark:to-white/10 overflow-hidden">
+                    {a.coverImage ? (
+                      <img
+                        src={a.coverImage}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                  <div className="p-4">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">{a.title || a.headline || ''}</div>
+                    <div className="mt-2 text-xs text-gray-500 dark:text-brand-muted line-clamp-3">{a.summary || ''}</div>
+                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-brand-muted">
+                      <span>{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
+                      {a.sourceName ? <span>{a.sourceName}</span> : null}
                     </div>
-                  ) : null}
-                </a>
-              </li>
-            ))}
-          </ul>
+                  </div>
+                </CardWrapper>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
