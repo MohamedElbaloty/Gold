@@ -12,10 +12,10 @@ const PricesPage = () => {
 
   const labels = useMemo(
     () => ({
-      title: lang === 'ar' ? 'أسعار الذهب لعملاء ذهب السعودية' : 'Gold Prices For Saudi Gold Customers',
-      enterAmount: lang === 'ar' ? 'أدخل الكمية بالجرام' : 'Enter the amount in grams',
-      updatedIn: lang === 'ar' ? 'سيتم تحديث الأسعار خلال' : 'Prices will be updated in',
-      according: lang === 'ar' ? 'طبقاً للسعر العالمي' : 'according to international price',
+      title: lang === 'ar' ? 'حاسبة أسعار الذهب والمعادن' : 'Gold Prices For Saudi Gold Customers',
+      enterAmount: lang === 'ar' ? 'أدخل الكمية (بالجرام)' : 'Enter the amount in grams',
+      updatedIn: lang === 'ar' ? 'تحديث الأسعار بعد' : 'Prices will be updated in',
+      according: lang === 'ar' ? 'حسب السعر العالمي' : 'according to international price',
       buyPrice: lang === 'ar' ? 'سعر الشراء' : 'Buy Price',
       sellPrice: lang === 'ar' ? 'سعر البيع' : 'Sell Price',
       gold24: lang === 'ar' ? 'عيار ذهب 24' : 'karat Gold 24',
@@ -151,11 +151,16 @@ const PricesPage = () => {
         {/* Update info */}
         <div className="text-center mb-6">
           <p className="text-white/70 text-sm mb-1">
-            {labels.updatedIn} <span className="text-brand-gold font-semibold">{countdown}</span> {lang === 'ar' ? 'ثوانٍ' : 'seconds'} {labels.according}
+            {labels.updatedIn} <span className="text-brand-gold font-semibold">{countdown}</span> {lang === 'ar' ? 'ثانية' : 'seconds'} {labels.according}
           </p>
           {prices?.timestamp && (
             <p className="text-brand-gold text-sm font-medium">
-              {new Date(prices.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+              {new Date(prices.timestamp).toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+              })}
             </p>
           )}
         </div>

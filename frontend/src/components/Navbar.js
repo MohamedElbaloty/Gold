@@ -30,52 +30,17 @@ const ChevronDown = ({ className }) => (
   </svg>
 );
 
-// Small flag icons (inline SVG)
+// Real flag glyphs (emoji) for clear meaning across UI
 const FlagUS = ({ className }) => (
-  <svg viewBox="0 0 28 20" className={className} aria-hidden="true">
-    <rect width="28" height="20" rx="3" fill="#fff" />
-    <g clipPath="url(#usClip)">
-      <rect width="28" height="20" fill="#fff" />
-      <g fill="#B22234">
-        <rect y="0" width="28" height="2" />
-        <rect y="4" width="28" height="2" />
-        <rect y="8" width="28" height="2" />
-        <rect y="12" width="28" height="2" />
-        <rect y="16" width="28" height="2" />
-      </g>
-      <rect width="12" height="10" fill="#3C3B6E" />
-      <g fill="#fff" opacity="0.9">
-        <circle cx="2" cy="2" r="0.55" />
-        <circle cx="4.3" cy="2" r="0.55" />
-        <circle cx="6.6" cy="2" r="0.55" />
-        <circle cx="8.9" cy="2" r="0.55" />
-        <circle cx="11.2" cy="2" r="0.55" />
-        <circle cx="3.1" cy="4" r="0.55" />
-        <circle cx="5.4" cy="4" r="0.55" />
-        <circle cx="7.7" cy="4" r="0.55" />
-        <circle cx="10" cy="4" r="0.55" />
-        <circle cx="2" cy="6" r="0.55" />
-        <circle cx="4.3" cy="6" r="0.55" />
-        <circle cx="6.6" cy="6" r="0.55" />
-        <circle cx="8.9" cy="6" r="0.55" />
-        <circle cx="11.2" cy="6" r="0.55" />
-      </g>
-    </g>
-    <defs>
-      <clipPath id="usClip">
-        <rect width="28" height="20" rx="3" />
-      </clipPath>
-    </defs>
-  </svg>
+  <span className={`inline-block w-6 text-center leading-none ${className || ''}`} aria-hidden="true">
+    🇺🇸
+  </span>
 );
 
 const FlagSA = ({ className }) => (
-  <svg viewBox="0 0 28 20" className={className} aria-hidden="true">
-    <rect width="28" height="20" rx="3" fill="#0B6B3A" />
-    {/* simple sword line (no script) */}
-    <path d="M7 14h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
-    <path d="M21 14l2-1v2z" fill="#fff" opacity="0.9" />
-  </svg>
+  <span className={`inline-block w-6 text-center leading-none ${className || ''}`} aria-hidden="true">
+    🇸🇦
+  </span>
 );
 
 // Trading icon
@@ -83,6 +48,41 @@ const TradeIcon = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17l6-6 4 4 8-8" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 7h7v7" />
+  </svg>
+);
+
+const DashboardIcon = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M4 13h6V4H4v9Zm10 7h6V11h-6v9ZM4 20h6v-5H4v5Zm10-11h6V4h-6v5Z" />
+  </svg>
+);
+
+const UserIcon = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M20 21a8 8 0 1 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+    />
+  </svg>
+);
+
+const KeyIcon = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15 7a5 5 0 1 0-4 8l2 2h2v2h2v2h3v-3l-7-7Z"
+    />
+  </svg>
+);
+
+const LogoutIcon = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M10 7V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2" />
+    <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M15 12H3m0 0 3-3m-3 3 3 3" />
   </svg>
 );
 
@@ -105,24 +105,24 @@ const Navbar = () => {
   const labels = useMemo(
     () => ({
       store: lang === 'ar' ? 'المتجر' : 'Store',
-      cart: lang === 'ar' ? 'السلة' : 'Cart',
+      cart: lang === 'ar' ? 'سلة المشتريات' : 'Cart',
       home: lang === 'ar' ? 'الرئيسية' : 'Home',
       newsTop: lang === 'ar' ? 'الأخبار' : 'News',
       pricesTop: lang === 'ar' ? 'حاسبة الأسعار' : 'Price Calculator',
       dashboard: lang === 'ar' ? 'لوحة التحكم' : 'Dashboard',
-      trading: lang === 'ar' ? 'تداول' : 'Trading',
+      trading: lang === 'ar' ? 'التداول' : 'Trading',
       wallet: lang === 'ar' ? 'المحفظة' : 'Wallet',
       orders: lang === 'ar' ? 'الطلبات' : 'Orders',
-      delivery: lang === 'ar' ? 'التوصيل' : 'Delivery',
-      admin: lang === 'ar' ? 'إدارة' : 'Admin',
-      logout: lang === 'ar' ? 'خروج' : 'Logout',
+      delivery: lang === 'ar' ? 'التسليم' : 'Delivery',
+      admin: lang === 'ar' ? 'لوحة الإدارة' : 'Admin',
+      logout: lang === 'ar' ? 'تسجيل خروج' : 'Logout',
       profile: lang === 'ar' ? 'الملف الشخصي' : 'Profile',
       changePassword: lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password',
       dark: lang === 'ar' ? 'الوضع الليلي' : 'Dark mode',
       language: lang === 'ar' ? 'Eng / Ar' : 'Eng / Ar',
       demo: lang === 'ar' ? 'تجريبي' : 'Demo',
-      real: lang === 'ar' ? 'حقيقي' : 'Real',
-      balanceNow: lang === 'ar' ? 'رصيدك الآن' : 'Balance',
+      real: lang === 'ar' ? 'فعلي' : 'Real',
+      balanceNow: lang === 'ar' ? 'رصيدك الحالي' : 'Balance',
       platform: lang === 'ar' ? 'المنصة' : 'Platform'
     }),
     [lang]
@@ -429,31 +429,35 @@ const Navbar = () => {
                         <Link
                           to="/dashboard"
                           onClick={() => setUserMenuOpen(false)}
-                          className="block px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
                         >
+                          <DashboardIcon className="w-4 h-4 text-gray-500 dark:text-white/70" />
                           {labels.dashboard}
                         </Link>
                         <div className="border-t border-gray-100 dark:border-white/5" />
                         <Link
                           to="/profile"
                           onClick={() => setUserMenuOpen(false)}
-                          className="block px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
                         >
+                          <UserIcon className="w-4 h-4 text-gray-500 dark:text-white/70" />
                           {labels.profile}
                         </Link>
                         <Link
                           to="/profile/change-password"
                           onClick={() => setUserMenuOpen(false)}
-                          className="block px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
                         >
+                          <KeyIcon className="w-4 h-4 text-gray-500 dark:text-white/70" />
                           {labels.changePassword}
                         </Link>
                         <div className="border-t border-gray-100 dark:border-white/5">
                           <button
                             type="button"
                             onClick={handleLogout}
-                            className="w-full text-left px-3 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium"
+                            className="w-full text-left px-3 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium flex items-center gap-2"
                           >
+                            <LogoutIcon className="w-4 h-4" />
                             {labels.logout}
                           </button>
                         </div>
@@ -467,13 +471,13 @@ const Navbar = () => {
                     to="/login"
                     className="h-10 px-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 flex items-center"
                   >
-                    {lang === 'ar' ? 'دخول' : 'Login'}
+                    {lang === 'ar' ? 'تسجيل الدخول' : 'Login'}
                   </Link>
                   <Link
                     to="/register"
                     className="h-10 px-3 rounded-xl bg-brand-gold text-black text-sm font-medium flex items-center"
                   >
-                    {lang === 'ar' ? 'تسجيل' : 'Register'}
+                    {lang === 'ar' ? 'إنشاء حساب' : 'Register'}
                   </Link>
                 </>
               )}
@@ -534,8 +538,9 @@ const Navbar = () => {
                   <Link
                     to="/dashboard"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
                   >
+                    <DashboardIcon className="w-4 h-4 text-gray-500 dark:text-white/70" />
                     {labels.dashboard}
                   </Link>
                   {(user.role === 'admin' || user.role === 'merchant') && (
@@ -598,15 +603,17 @@ const Navbar = () => {
                   <Link
                     to="/profile"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
                   >
+                    <UserIcon className="w-4 h-4 text-gray-500 dark:text-white/70" />
                     {labels.profile}
                   </Link>
                   <Link
                     to="/profile/change-password"
                     onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
                   >
+                    <KeyIcon className="w-4 h-4 text-gray-500 dark:text-white/70" />
                     {labels.changePassword}
                   </Link>
                   <button
@@ -624,14 +631,14 @@ const Navbar = () => {
                     onClick={() => setMenuOpen(false)}
                     className="h-10 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-white flex items-center justify-center"
                   >
-                    {lang === 'ar' ? 'دخول' : 'Login'}
+                    {lang === 'ar' ? 'تسجيل الدخول' : 'Login'}
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setMenuOpen(false)}
                     className="h-10 rounded-xl bg-brand-gold text-black text-sm font-medium flex items-center justify-center"
                   >
-                    {lang === 'ar' ? 'تسجيل' : 'Register'}
+                    {lang === 'ar' ? 'إنشاء حساب' : 'Register'}
                   </Link>
                 </div>
               )}

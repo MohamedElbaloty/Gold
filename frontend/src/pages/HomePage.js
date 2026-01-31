@@ -10,7 +10,7 @@ const HomePage = () => {
       title: lang === 'ar' ? 'منصة ذهب السعودية' : 'Saudi Gold Platform',
       subtitle:
         lang === 'ar'
-          ? 'اختَر ما يناسبك الآن — شراء الذهب أو تداول الذهب.'
+          ? 'اختر اللي يناسبك الآن — شراء الذهب أو تداوله.'
           : 'Choose your journey: buy physical gold from the store or trade gold on the platform.',
       buyTitle: lang === 'ar' ? 'شراء الذهب' : 'Buy Gold',
       buyDesc:
@@ -24,10 +24,10 @@ const HomePage = () => {
           ? 'بيع وشراء على سبايكك المحجوزة لك — بدون ما تمسك الذهب أو تراجع تاجر.'
           : 'Open and close real gold buy/sell positions. Platform buy/sell prices include our spread.',
       tradeCta: lang === 'ar' ? 'بدء التداول' : 'Start Trading',
-      note: lang === 'ar' ? 'التداول يتطلب تسجيل دخول.' : 'Trading requires login.',
+      note: lang === 'ar' ? 'التداول يتطلب تسجيل الدخول.' : 'Trading requires login.',
       tradeExplain:
         lang === 'ar'
-          ? 'بدل ما تشتري/تبيع وانت واقف عند التاجر، المنصة تنفّذ البيع والشراء لك مع الاحتفاظ بسبايكك محجوزة باسمك.'
+          ? 'بدل ما تشتري/تبيع عند التاجر، المنصة تنفّذ لك البيع والشراء وتخلي سبايكك محفوظة باسمك.'
           : 'Instead of handling bullion at a dealer, the platform executes buy/sell while your bullion remains reserved under your name.'
     }),
     [lang]

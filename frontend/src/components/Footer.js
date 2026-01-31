@@ -7,19 +7,19 @@ const Footer = () => {
 
   const labels = useMemo(
     () => ({
-      about: lang === 'ar' ? 'عن ذهب السعودية' : 'About Saudi Gold',
+      about: lang === 'ar' ? 'عن المنصة' : 'About Saudi Gold',
       userGuide: lang === 'ar' ? 'دليل المستخدم' : 'User Guide',
       terms: lang === 'ar' ? 'الشروط والأحكام' : 'Terms and Conditions',
       aml: lang === 'ar' ? 'AML' : 'AML',
       faq: lang === 'ar' ? 'الأسئلة الشائعة' : 'FAQ',
-      connect: lang === 'ar' ? 'تواصل معنا' : 'Connect us',
-      help: lang === 'ar' ? 'مساعدة' : 'Help',
-      allRights: lang === 'ar' ? 'جميع الحقوق محفوظة لذهب السعودية' : 'All rights reserved to Saudi Gold',
+      connect: lang === 'ar' ? 'تواصل معنا' : 'Contact us',
+      help: lang === 'ar' ? 'الدعم' : 'Help',
+      allRights: lang === 'ar' ? 'جميع الحقوق محفوظة لمنصة ذهب السعودية' : 'All rights reserved to Saudi Gold',
       poweredBy: lang === 'ar' ? 'مدعوم من' : 'Powered by',
       scrollToTop: lang === 'ar' ? 'العودة للأعلى' : 'Scroll to top',
       brandAr: 'السبائك',
       brandEn: 'ALSABAEK',
-      brandTaglineAr: 'ذهب السعودية للمجوهرات الذهبية',
+      brandTaglineAr: 'سبائك ومجوهرات بمعايير سعودية',
       brandTaglineEn: 'Saudi Gold for Gold Jewelry'
     }),
     [lang]

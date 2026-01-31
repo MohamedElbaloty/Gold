@@ -10,7 +10,8 @@ function applyTheme(theme) {
 
 function applyDir(lang) {
   const root = document.documentElement;
-  root.lang = lang === 'ar' ? 'ar' : 'en';
+  // Use Saudi Arabic locale for better formatting/fonts defaults
+  root.lang = lang === 'ar' ? 'ar-SA' : 'en-US';
   root.dir = lang === 'ar' ? 'rtl' : 'ltr';
 }
 

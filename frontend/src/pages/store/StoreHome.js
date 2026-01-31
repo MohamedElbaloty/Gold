@@ -39,7 +39,7 @@ const StoreHome = () => {
             </h1>
             <p className="max-w-2xl text-gray-600 dark:text-brand-muted">
               {lang === 'ar'
-                ? 'تصفح الكاتالوجات حسب الفئة: سبائك ذهب، فضة، PAMP، ساعات، ماس، هدايا وأكثر.'
+                ? 'تصفح التصنيفات: سبائك ذهب، فضة، PAMP، ساعات، ألماس، هدايا وأكثر.'
                 : 'Browse catalogs by category: gold bars, silver, PAMP, watches, diamond, gifts and more.'}
             </p>
           </div>
@@ -49,13 +49,13 @@ const StoreHome = () => {
               to="/store/catalog"
               className="inline-flex items-center justify-center rounded-xl px-5 py-3 bg-brand-gold text-black font-medium hover:opacity-90"
             >
-              {lang === 'ar' ? 'كل الكاتالوج' : 'All catalog'}
+              {lang === 'ar' ? 'كل المنتجات' : 'All catalog'}
             </Link>
             <Link
               to="/cart"
               className="inline-flex items-center justify-center rounded-xl px-5 py-3 border border-gray-200 dark:border-white/10 bg-white dark:bg-transparent text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5"
             >
-              {lang === 'ar' ? 'السلة' : 'Cart'}
+              {lang === 'ar' ? 'سلة المشتريات' : 'Cart'}
             </Link>
           </div>
         </div>
@@ -64,7 +64,7 @@ const StoreHome = () => {
       {/* Catalogs - like daralsabaek.com */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          {lang === 'ar' ? 'الكتالوجات' : 'Catalogs'}
+          {lang === 'ar' ? 'التصنيفات' : 'Catalogs'}
         </h2>
         {loading ? (
           <div className="py-6 text-center text-gray-500 dark:text-brand-muted">{lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}</div>

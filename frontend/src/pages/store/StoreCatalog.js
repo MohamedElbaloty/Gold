@@ -28,7 +28,7 @@ const StoreCatalog = () => {
       categories: lang === 'ar' ? 'التصنيفات' : 'Categories',
       all: lang === 'ar' ? 'الكل' : 'All',
       empty: lang === 'ar' ? 'لا يوجد منتجات' : 'No products found',
-      backToCatalog: lang === 'ar' ? 'الكل الكتالوج' : 'All catalog'
+      backToCatalog: lang === 'ar' ? 'كل المنتجات' : 'All catalog'
     }),
     [lang]
   );
@@ -115,7 +115,7 @@ const StoreCatalog = () => {
               to="/cart"
               className="h-11 px-4 rounded-xl bg-brand-gold text-black font-medium flex items-center justify-center"
             >
-              {lang === 'ar' ? 'السلة' : 'Cart'}
+              {lang === 'ar' ? 'سلة المشتريات' : 'Cart'}
             </Link>
           </div>
         </div>

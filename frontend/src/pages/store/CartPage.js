@@ -17,8 +17,8 @@ const CartPage = () => {
 
   const labels = useMemo(
     () => ({
-      title: lang === 'ar' ? 'السلة' : 'Cart',
-      empty: lang === 'ar' ? 'السلة فارغة' : 'Your cart is empty',
+      title: lang === 'ar' ? 'سلة المشتريات' : 'Cart',
+      empty: lang === 'ar' ? 'سلة المشتريات فاضية' : 'Your cart is empty',
       checkout: lang === 'ar' ? 'إتمام الطلب' : 'Checkout',
       update: lang === 'ar' ? 'تحديث' : 'Update',
       back: lang === 'ar' ? 'رجوع للكتالوج' : 'Back to catalog'
