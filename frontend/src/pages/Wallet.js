@@ -125,11 +125,17 @@ const Wallet = () => {
 
       {/* Balance Cards + Demo Deposit */}
       {wallet && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6 md:col-span-1">
             <h2 className="text-lg font-semibold text-gray-600 mb-2">Gold Balance</h2>
             <p className="text-3xl font-bold text-gold-600">
               {wallet.goldBalance.toFixed(4)} g
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6 md:col-span-1">
+            <h2 className="text-lg font-semibold text-gray-600 mb-2">Silver Balance</h2>
+            <p className="text-3xl font-bold text-gray-700">
+              {(wallet.silverBalance || 0).toFixed(4)} g
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6 md:col-span-1">
