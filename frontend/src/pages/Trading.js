@@ -70,6 +70,10 @@ const Trading = () => {
       actions: lang === 'ar' ? 'إجراءات' : 'Actions',
       sellNow: lang === 'ar' ? 'بيع الآن' : 'Sell now',
       shipLater: lang === 'ar' ? 'طلب شحن (سيتم تفعيله لاحقًا)' : 'Request shipping (coming soon)',
+      liveMarketNote:
+        lang === 'ar'
+          ? 'ملاحظة: سعر الشراء ثابت، لكن القيمة الحالية تتغير لحظيًا حسب سعر السوق.'
+          : 'Note: Your purchase price is fixed, but the current value updates in real time with the market.',
       reserved: lang === 'ar' ? 'محفوظ في الخزائن' : 'Reserved in vaults',
       delivered: lang === 'ar' ? 'تم التسليم' : 'Delivered',
       shipped: lang === 'ar' ? 'قيد الشحن' : 'Shipped',
@@ -440,6 +444,9 @@ const Trading = () => {
                               >
                                 {labels.shipLater}
                               </button>
+                              <p className="basis-full text-[11px] leading-relaxed text-gray-500 dark:text-brand-muted">
+                                {labels.liveMarketNote}
+                              </p>
                             </>
                           )}
                           {h.status === 'delivered' && (
