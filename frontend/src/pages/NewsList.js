@@ -6,6 +6,27 @@ import { api } from '../lib/api';
 // import TradingViewNews from '../components/TradingViewNews';
 // import WidgetErrorBoundary from '../components/WidgetErrorBoundary';
 
+function isGoldOrSilverNews(article) {
+  const text = `${article?.title || ''} ${article?.summary || ''}`.toLowerCase();
+  const hasGold =
+    text.includes('gold') ||
+    text.includes('xau') ||
+    text.includes('ذهب') ||
+    text.includes('الذهب');
+  const hasSilver =
+    text.includes('silver') ||
+    text.includes('xag') ||
+    text.includes('فضة') ||
+    text.includes('الفضة');
+  const hasPlatinum =
+    text.includes('platinum') ||
+    text.includes('xpt') ||
+    text.includes('بلاتين') ||
+    text.includes('البلاتين');
+
+  return (hasGold || hasSilver) && !hasPlatinum;
+}
+
 const NewsList = () => {
   const { lang } = useContext(UiContext);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,8 +39,10 @@ const NewsList = () => {
   const labels = useMemo(
     () => ({
       title: lang === 'ar' ? 'الأخبار' : 'News',
+      tvTitle: lang === 'ar' ? 'أخبار الذهب والفضة من TradingView' : 'Gold & Silver news from TradingView',
+      tvNote: lang === 'ar' ? 'العناوين من مصدر TradingView وقد تكون بالإنجليزية.' : 'Headlines are sourced from TradingView and may be in English.',
       search: lang === 'ar' ? 'بحث في الأخبار' : 'Search news',
-      empty: lang === 'ar' ? 'لا توجد أخبار' : 'No news yet'
+      empty: lang === 'ar' ? 'لا توجد أخبار للذهب أو الفضة' : 'No gold/silver news yet'
     }),
     [lang]
   );
@@ -50,6 +73,9 @@ const NewsList = () => {
             }
           } catch (_) {}
         }
+
+        // Filter: show only gold + silver (exclude platinum)
+        finalArticles = Array.isArray(finalArticles) ? finalArticles.filter(isGoldOrSilverNews) : [];
         if (!mounted) return;
         setArticles(finalArticles);
       } catch (e) {
@@ -103,6 +129,10 @@ const NewsList = () => {
       {/* TradingView news widget disabled for now to avoid external script runtime errors */}
 
       <div className="mt-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-brand-surface p-4">
+        <div className="mb-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-4">
+          <div className="text-sm font-semibold text-gray-900 dark:text-white">{labels.tvTitle}</div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-brand-muted">{labels.tvNote}</div>
+        </div>
         {loading ? (
           <div className="py-10 text-center text-gray-600 dark:text-brand-muted">{lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}</div>
         ) : filteredArticles.length === 0 ? (
