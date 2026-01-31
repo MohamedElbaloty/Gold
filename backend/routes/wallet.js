@@ -137,7 +137,7 @@ router.post('/deposit', authenticate, [
         w = created[0];
       }
 
-      const balanceBefore = { goldBalance: w.goldBalance, sarBalance: w.sarBalance };
+      const balanceBefore = { goldBalance: w.goldBalance, silverBalance: w.silverBalance, sarBalance: w.sarBalance };
 
       const [tx] = await Transaction.create(
         [
@@ -215,7 +215,7 @@ router.post('/withdraw', authenticate, [
       if (!w) throw new Error('Wallet not found');
       if (w.sarBalance < amountNum) throw new Error('Insufficient SAR balance');
 
-      const balanceBefore = { goldBalance: w.goldBalance, sarBalance: w.sarBalance };
+      const balanceBefore = { goldBalance: w.goldBalance, silverBalance: w.silverBalance, sarBalance: w.sarBalance };
 
       // Reserve funds by deducting immediately (request is still pending for payout)
       w.sarBalance = Math.max(0, w.sarBalance - amountNum);
@@ -232,7 +232,7 @@ router.post('/withdraw', authenticate, [
             pricePerGram: 0,
             status: 'pending',
             balanceBefore,
-            balanceAfter: { goldBalance: w.goldBalance, sarBalance: w.sarBalance },
+            balanceAfter: { goldBalance: w.goldBalance, silverBalance: w.silverBalance, sarBalance: w.sarBalance },
             metadata: {
               method: method || 'bank_transfer',
               reference: reference || ''
