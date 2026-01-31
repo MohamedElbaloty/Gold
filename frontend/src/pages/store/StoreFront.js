@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UiContext from '../../context/UiContext';
 import { api } from '../../lib/api';
+import TradingViewTicker from '../../components/TradingViewTicker';
 
 function isGoldSilverPlatinumNews(article) {
   const text = `${article?.title || ''} ${article?.summary || ''}`.toLowerCase();
@@ -12,7 +13,7 @@ function isGoldSilverPlatinumNews(article) {
 }
 
 const StoreFront = () => {
-  const { lang } = useContext(UiContext);
+  const { lang, theme } = useContext(UiContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const selectedCatalogSlug = searchParams.get('catalog') || '';
@@ -327,6 +328,13 @@ const StoreFront = () => {
           <div className="px-5 sm:px-6 py-3 flex items-center gap-2 text-xs font-semibold text-gray-700/70 dark:text-white/60">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             <span>{labels.tvTitle}</span>
+          </div>
+          <div className="px-5 sm:px-6">
+            <TradingViewTicker
+              theme={theme === 'light' ? 'light' : 'dark'}
+              height={46}
+              className="rounded-2xl overflow-hidden border border-gray-200/70 dark:border-white/10"
+            />
           </div>
           <div className="px-5 sm:px-6 pb-4 text-xs text-gray-600 dark:text-white/60">
             {lang === 'ar' ? 'لعرض الأسعار العالمية بالدولار، راجع صفحة الأسعار.' : 'For global USD view, see the Prices page.'}{' '}
